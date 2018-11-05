@@ -1,0 +1,20 @@
+syntax = "proto2";
+package tutorial;
+
+
+message TrxObject{
+    required int32 height =1;
+    message VIN{
+        optional string coinbase=1;
+        optional string txid=2;
+        optional int32 vout=3;
+        optional string reserve=4;
+    }
+    repeated VIN vins =2;
+    message VOUT{
+        required string value =1;
+        required int32 n =2;
+        required string scriptPubKey=3;
+    }
+    repeated VOUT vouts =3;
+}

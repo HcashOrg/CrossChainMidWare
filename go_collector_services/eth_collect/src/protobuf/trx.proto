@@ -1,0 +1,19 @@
+syntax = "proto2";
+package tutorial;
+
+
+message TrxObject{
+    required int32 BlockNumber =1;
+    required string from=2;
+    required string to=3;
+    required int32 gas=4;
+    required string gasprice=5;
+    required string input=6;
+    required int32 nonce=7;
+    required int32 transactionIndex=8;
+    required string value=9;
+    required string contractAddress=10;
+    required int32 gasUsed=11;
+    required bool status=12;
+    required string logs=13;
+}

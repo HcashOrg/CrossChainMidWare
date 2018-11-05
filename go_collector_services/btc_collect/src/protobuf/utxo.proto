@@ -1,0 +1,9 @@
+syntax = "proto2";
+package tutorial;
+
+
+message UTXOObject{
+    required string address =1;
+    required string value =2;
+
+}
