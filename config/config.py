@@ -40,6 +40,8 @@ class DevelopmentConfig(Config):
     ETH_Minimum = 0.5
     BTC_HOST = 'btc_wallet'
     BTC_PORT = 60011
+    BTC_COLLECT_HOST = 'localhost'
+    BTC_COLLECT_PORT = 5444
     BTC_FEE =0.001
     ETP_PORT = 8820
     ETP_URL = 'etp_wallet'

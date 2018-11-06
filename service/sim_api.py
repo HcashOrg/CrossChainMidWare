@@ -414,7 +414,7 @@ def zchain_multisig_add(chainId, addrs, amount, addrType):
         multisig_addr = sim_btc_plugin[chainId].sim_btc_add_multisig(addrs, amount)
         if multisig_addr is not None:
             addr_info = sim_btc_plugin[chainId].sim_btc_validate_address(multisig_addr)
-            if addr_info is not None:
+            if addr_info == "":
                 multisig_record = db.get_collection("b_"+chainId+"_multisig_address").find_one({"address": multisig_addr})
                 if multisig_record is not None:
                     db.get_collection("b_"+chainId+"_multisig_address").remove({"address": multisig_addr})
@@ -548,7 +548,7 @@ def zchain_configuration_set(chainId, key, value):
         }
 
 
-# TODO, 备份私钥功能暂时注释，正式上线要加回�?
+# TODO, 备份私钥功能暂时注释，正式上线要加回
 @jsonrpc.method('Zchain.Address.Create(chainId=String)')
 def zchain_address_create(chainId):
     chainId = chainId.lower()
@@ -583,7 +583,7 @@ def zchain_address_create(chainId):
 @jsonrpc.method('Zchain.Withdraw.GetInfo(chainId=str)')
 def zchain_withdraw_getinfo(chainId):
     """
-    查询提现账户的信�?
+    查询提现账户的信息
     :param chainId:
     :return:
     """
