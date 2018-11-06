@@ -10,6 +10,7 @@ from service import hc_plugin
 from utils import error_utils
 import pymongo
 from datetime import datetime
+import json
 import leveldb
 
 @jsonrpc.method('Zchain.Crypt.Sign(chainId=str, addr=str, message=str)')
@@ -180,7 +181,7 @@ def zchain_trans_getEthTrxCount(chainId, addr, indexFormat):
         return error_utils.invalid_chainid_type()
     if result == {}:
         return error_utils.error_response("Cannot eth trx count.")
-    print result
+    #print result
     return result
 @jsonrpc.method('Zchain.Trans.createTrx(chainId=str, from_addr=str,dest_info=dict)')
 def zchain_trans_createTrx(chainId, from_addr,dest_info):
@@ -265,6 +266,11 @@ def zchain_trans_queryTrx(chainId, trxid):
         result = sim_btc_plugin[chainId].sim_btc_get_transaction(trxid)
     elif chainId == "hc":
         result = hc_plugin.hc_get_transaction(trxid)
+    elif chainId == "eth" or "erc" in chainId:
+        source,respit = eth_utils.get_transaction_data(trxid)
+        so_re_dic = {'source_trx':source,'respit_trx':respit}
+        if source != None and respit != None:
+            result = so_re_dic
     else:
         return error_utils.invalid_chainid_type()
 
@@ -311,7 +317,7 @@ def zchain_crypt_verify_message(chainId, addr, message, signature):
         result = hc_plugin.hc_verify_signed_message(addr, message, signature)
 
     elif (chainId == 'eth') or ('erc' in chainId):
-        print 1
+        #print 1
         result = eth_utils.eth_verify_signed_message(addr, message, signature)
     else:
         return error_utils.invalid_chainid_type()
@@ -542,7 +548,7 @@ def zchain_configuration_set(chainId, key, value):
         }
 
 
-# TODO, 备份私钥功能暂时注释，正式上线要加回�?
+# TODO, 备份私钥功能暂时注释，正式上线要加回�?
 @jsonrpc.method('Zchain.Address.Create(chainId=String)')
 def zchain_address_create(chainId):
     chainId = chainId.lower()
@@ -577,7 +583,7 @@ def zchain_address_create(chainId):
 @jsonrpc.method('Zchain.Withdraw.GetInfo(chainId=str)')
 def zchain_withdraw_getinfo(chainId):
     """
-    查询提现账户的信�?
+    查询提现账户的信�?
     :param chainId:
     :return:
     """
@@ -634,17 +640,19 @@ def zchain_withdraw_getinfo(chainId):
 @jsonrpc.method('Zchain.Address.GetBalance(chainId=str, addr=str)')
 def zchain_address_get_balance(chainId, addr):
     logger.info('Zchain.Address.GetBalance')
-    chainIdLower = chainId.lower()
-    if (chainIdLower == 'eth'):
-        result = eth_utils.eth_get_address_balance(addr, chainIdLower)
+    ercchainId = chainId
+    chainId = chainId.lower()
+    if (chainId == 'eth'):
+        result = eth_utils.eth_get_address_balance(addr, chainId)
+        #print result
         return {
-            'chainId': chainIdLower,
+            'chainId': chainId,
             'address': addr,
             'balance': result
         }
-    elif ('erc' in chainIdLower):
-       #print addr
-       asset = db.b_erc_address.find_one({"chainId": chainId})
+    elif ('erc' in chainId):
+       #print ercchainId
+       asset = db.b_erc_address.find_one({"chainId": ercchainId})
        if asset == None:
            error_utils.invalid_chainid_type(chainId)
 
@@ -653,7 +661,8 @@ def zchain_address_get_balance(chainId, addr):
            'addr':addr,
            'contract_addr':asset['address']
        }
-       result = eth_utils.eth_get_address_balance(temp,chainIdLower)
+       result = eth_utils.eth_get_address_balance(temp,chainId)
+       #print result
        return {
            'chainId': chainId,
            'address': addr,
