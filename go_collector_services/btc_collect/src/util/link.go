@@ -10,6 +10,7 @@ import (
 	"github.com/bitly/go-simplejson"
 	"reflect"
 	"strconv"
+	"crypto/tls"
 )
 
 type LinkClient struct{
@@ -41,6 +42,12 @@ func notUseQuote(value string) bool{
 	}
 	return contain
 }
+func FormatBool(b bool) string {
+	if b {
+		return "true"
+	}
+	return "false"
+}
 func turnInterface(ina *[]interface{})string{
 	message := "["
 	for _,value := range *ina{
@@ -49,6 +56,12 @@ func turnInterface(ina *[]interface{})string{
 				message = message + strconv.Itoa(value.(int))
 			}else{
 				message = message +","+ strconv.Itoa(value.(int))
+			}
+		}else if reflect.TypeOf(value)==reflect.TypeOf(true){
+			if message == "[" {
+				message = message + FormatBool(value.(bool))
+			}else{
+				message = message +","+ FormatBool(value.(bool))
 			}
 		} else {
 			if message == "["{
@@ -61,50 +74,62 @@ func turnInterface(ina *[]interface{})string{
 	message = message + "]"
 	return message
 }
-func (client * LinkClient)LinkHttpFunc(function string,params *[]interface{})(*simplejson.Json) {
+func (client * LinkClient)LinkHttpFunc(function string,params *[]interface{},istls bool)(*simplejson.Json) {
 	strParams := turnInterface(params)
-	transport := http.Transport{
-		DisableKeepAlives:              true,
+	var transport http.Transport
+	if istls{
+		transport = http.Transport{
+			DisableKeepAlives:              true,
+			TLSClientConfig:    &tls.Config{InsecureSkipVerify: true},
+		}
+	}else{
+		transport = http.Transport{
+			DisableKeepAlives:              true,
+		}
 	}
+
 	clienta := http.Client{Transport: &transport,}
 
 	message :="{ \"id\": 1, \"method\": \""+function+"\", \"params\": "+strParams+"}"
 	payload := strings.NewReader(message)
 	//fmt.Println(payload)
-	req, err := http.NewRequest("POST", client.IP+":"+client.Port, payload)
+	for {
+		req, err := http.NewRequest("POST", client.IP+":"+client.Port, payload)
 
-	if err != nil{
-		fmt.Println("x")
-		fmt.Println(err.Error())
-		return nil
+		if err != nil{
+			fmt.Println("x")
+			fmt.Println(err.Error())
+			return nil
+		}
+		req.Header.Add("content-type", "text/plain")
+		if client.User != "" && client.PassWord != ""{
+			encodeUser := base64.StdEncoding.EncodeToString([]byte((*client).User+":"+(*client).PassWord))
+			req.Header.Add("authorization", "Basic "+ encodeUser)
+		}
+		res, err := clienta.Do(req)
+		if err != nil{
+			fmt.Println("1")
+			fmt.Println(err.Error())
+			return nil
+		}
+		defer res.Body.Close()
+		body, err := ioutil.ReadAll(res.Body)
+		if err != nil{
+			fmt.Println("2")
+			fmt.Println(err.Error())
+			return nil
+		}
+		js,err:= simplejson.NewJson(body)
+		if err != nil{
+			fmt.Println("3")
+			fmt.Println(string(body))
+			fmt.Println(err.Error())
+			return nil
+		}
+		//fmt.Println(js)
+		return js
 	}
-	req.Header.Add("content-type", "text/plain")
-	if client.User != "" && client.PassWord != ""{
-		encodeUser := base64.StdEncoding.EncodeToString([]byte((*client).User+":"+(*client).PassWord))
-		req.Header.Add("authorization", "Basic "+ encodeUser)
-	}
-	res, err := clienta.Do(req)
-	if err != nil{
-		fmt.Println("1")
-		fmt.Println(err.Error())
-		return nil
-	}
-	defer res.Body.Close()
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil{
-		fmt.Println("2")
-		fmt.Println(err.Error())
-		return nil
-	}
-	js,err:= simplejson.NewJson(body)
-	if err != nil{
-		fmt.Println("3")
-		fmt.Println(string(body))
-		fmt.Println(err.Error())
-		return nil
-	}
-	//fmt.Println(js)
-	return js
+
 }
 func (client * LinkClient)HttpRpcFunction(function string,param *[]interface{})string{
 	url:="http://"+(*client).IP+":"+(*client).Port

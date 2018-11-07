@@ -110,7 +110,7 @@ func (s *Service) GetTrx(r *http.Request, args *string, reply *map[string]interf
 	param := make([]interface{},0)
 	param = append(param, *args)
 	param = append(param, 1)
-	trx_data,_ := link_client.LinkHttpFunc("getrawtransaction",&param ).Get("result").Map()
+	trx_data,_ := link_client.LinkHttpFunc("getrawtransaction",&param ,config.RpcServerConfig.IsTls[ChainType]).Get("result").Map()
 	*reply = trx_data
 	return nil
 }
@@ -143,14 +143,26 @@ func (s *Service) ListUnSpent(r *http.Request, args *string, reply *[]map[string
 			fmt.Println(err)
 			continue
 		}
+		if *utxo_obj.Address != *args{
+			fmt.Println(utxo_obj.Address , *args)
+			continue
+		}
+		tmp_value,err := strconv.ParseFloat(*utxo_obj.Value,64)
+		if tmp_value<=0{
+			continue
+		}
 		tmp_map := make(map[string]interface{})
 		txid,vout := lnk_util.SplitAddrUtxoPrefix(k)
 		tmp_map["txid"] = txid
 		tmp_map["vout"] = vout
 		tmp_map["address"] = *utxo_obj.Address
+		tmp_map["scriptPubKey"] = *utxo_obj.ScriptPubKey
 		tmp_map["value"] = *utxo_obj.Value
 		bak_map[index] = tmp_map
 		index = index +1
+		if index>1500{
+			break
+		}
 	}
 
 	*reply = bak_map

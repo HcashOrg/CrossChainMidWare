@@ -75,11 +75,48 @@ func one_collect_data(data_chan chan map[int]simplejson.Json,height []int){
 	for _,once_height := range height{
 		param := make([]interface{},0)
 		param = append(param,once_height)
-		blockhash,_ := link_client.LinkHttpFunc("getblockhash",&param ).Get("result").String()
+		blockhash,_ := link_client.LinkHttpFunc("getblockhash",&param ,config.RpcServerConfig.IsTls[ChainType]).Get("result").String()
 		param_getblock := make([]interface{},0)
 		param_getblock = append(param_getblock,blockhash)
-		param_getblock = append(param_getblock,2)
-		blockdata := link_client.LinkHttpFunc("getblock",&param_getblock )
+		if config.RpcServerConfig.IsOldFunctionLevel[ChainType]{
+
+			param_getblock = append(param_getblock,true)
+		}else{
+
+			param_getblock = append(param_getblock,2)
+		}
+
+		blockdata := link_client.LinkHttpFunc("getblock",&param_getblock,config.RpcServerConfig.IsTls[ChainType] )
+		if config.RpcServerConfig.IsOldFunctionLevel[ChainType]{
+			tx_datas,_ := blockdata.Get("result").Get("tx").Array()
+			stx_datas,_ := blockdata.Get("result").Get("stx").Array()
+			tx_real_datas := make([]interface{},0,len(tx_datas)+len(stx_datas))
+			for _,txids := range tx_datas{
+				param_gettransaction := make([]interface{},0)
+				param_gettransaction = append(param_gettransaction,txids.(string))
+				param_gettransaction = append(param_gettransaction,2)
+				tx_data := link_client.LinkHttpFunc("getrawtransaction",&param_gettransaction ,config.RpcServerConfig.IsTls[ChainType])
+				map_data,err := tx_data.Get("result").Map()
+				if err!=nil{
+					fmt.Println(err.Error())
+				}
+				tx_real_datas = append(tx_real_datas,map_data)
+			}
+
+
+			for _,txids := range stx_datas{
+				param_gettransaction := make([]interface{},0)
+				param_gettransaction = append(param_gettransaction,txids.(string))
+				param_gettransaction = append(param_gettransaction,2)
+				tx_data := link_client.LinkHttpFunc("getrawtransaction",&param_gettransaction,config.RpcServerConfig.IsTls[ChainType] )
+				map_data,err := tx_data.Get("result").Map()
+				if err!=nil{
+					fmt.Println(err.Error())
+				}
+				tx_real_datas = append(tx_real_datas,map_data)
+			}
+			blockdata.Get("result").Set("tx",tx_real_datas)
+		}
 		data_chan <- map[int]simplejson.Json{once_height:*blockdata}
 	}
 
@@ -93,94 +130,182 @@ func ceil(a int,b int)int{
 	return res
 }
 
-func collect_block(height_chan chan int,blockdata_chan chan simplejson.Json){
+func collect_block(height_chan chan int,blockdata_chan chan simplejson.Json,is_fast bool){
 	defer wg.Done()
 
 	back_time := time.Now()
-	delta_size := 20
-	one_batch_count :=delta_size/4
+	if is_fast{
+		delta_size := 20
+		one_batch_count :=delta_size/4
 
 
-	for ;;{
-		height_cache := make([]int,0,delta_size)
+		for ;;{
+			height_cache := make([]int,0,delta_size)
 
-		data_chan := make(chan map[int]simplejson.Json,delta_size)
+			data_chan := make(chan map[int]simplejson.Json,delta_size)
 
 
-		for i:=0;i<delta_size;i++{
-			once_height := <- height_chan
-			if once_height == -1{
+			for i:=0;i<delta_size;i++{
+				once_height := <- height_chan
+				if once_height == -1{
 
-				handle_count := ceil(len(height_cache),one_batch_count)
-				wg_collect.Add(handle_count)
-				for j:=0;j<handle_count;j++{
-					if j==handle_count-1{
-						go one_collect_data(data_chan,height_cache[j*one_batch_count:])
-					}else{
-						go one_collect_data(data_chan,height_cache[j*one_batch_count:(j+1)*one_batch_count])
+					handle_count := ceil(len(height_cache),one_batch_count)
+					wg_collect.Add(handle_count)
+					for j:=0;j<handle_count;j++{
+						if j==handle_count-1{
+							go one_collect_data(data_chan,height_cache[j*one_batch_count:])
+						}else{
+							go one_collect_data(data_chan,height_cache[j*one_batch_count:(j+1)*one_batch_count])
+						}
+
 					}
-
-				}
-				wg_collect.Wait()
-				cache_map := make(map[int]simplejson.Json)
-				for j:=0;j<len(height_cache);j++{
-					tmp_data:= <- data_chan
-					for k,v := range tmp_data{
-						cache_map[k] = v
+					wg_collect.Wait()
+					cache_map := make(map[int]simplejson.Json)
+					for j:=0;j<len(height_cache);j++{
+						tmp_data:= <- data_chan
+						for k,v := range tmp_data{
+							cache_map[k] = v
+						}
 					}
+					for _,height:= range height_cache{
+						blockdata_chan <- cache_map[height]
+					}
+					fmt.Println("collect exit")
+
+					json_data,_ :=simplejson.NewJson([]byte("{\"result\":\"exit\"}"))
+					blockdata_chan <- *json_data
+					return
 				}
-				for _,height:= range height_cache{
-					blockdata_chan <- cache_map[height]
+				height_cache = append(height_cache,once_height)
+
+			}
+			wg_collect.Add(4)
+			for j:=0;j<4;j++{
+				go one_collect_data(data_chan,height_cache[j*one_batch_count:(j+1)*one_batch_count])
+			}
+
+			wg_collect.Wait()
+			cache_map := make(map[int]simplejson.Json)
+			for j:=0;j<delta_size;j++{
+				tmp_data:= <- data_chan
+				for k,v := range tmp_data{
+					cache_map[k] = v
 				}
-				fmt.Println("collect exit")
-
-				json_data,_ :=simplejson.NewJson([]byte("{\"result\":\"exit\"}"))
-				blockdata_chan <- *json_data
-				return
 			}
-			height_cache = append(height_cache,once_height)
+			for _,height:= range height_cache{
+				blockdata :=cache_map[height]
+				blockdata_chan <- blockdata
 
-		}
-		wg_collect.Add(4)
-		for j:=0;j<4;j++{
-			go one_collect_data(data_chan,height_cache[j*one_batch_count:(j+1)*one_batch_count])
-		}
-
-		wg_collect.Wait()
-		cache_map := make(map[int]simplejson.Json)
-		for j:=0;j<delta_size;j++{
-			tmp_data:= <- data_chan
-			for k,v := range tmp_data{
-				cache_map[k] = v
+				size,_ := blockdata.Get("result").Get("size").Int()
+				atomic.AddInt64(&total_size,int64(size))
+				tx_array,_ := blockdata.Get("result").Get("tx").Array()
+				atomic.AddInt64(&total_trx_size,int64(len(tx_array)))
+				if height % 1000 == 0{
+					tmp_height,_ :=blockdata.Get("result").Get("height").Int()
+					fmt.Println("block height",tmp_height)
+					fmt.Println( "total size: ", total_size / 1024 / 1024, " MB")
+					fmt.Println( "total trx count: ", total_trx_size)
+					fmt.Println( "now :", time.Now() )
+					fmt.Println( "cost time : ", time.Now().Sub(back_time))
+					fmt.Println( "blocks per sec : ", float32(height-global_start_height) / float32(time.Now().Sub(back_time).Seconds()))
+					fmt.Println( "trxs per sec: ", float32(total_trx_size) / float32(time.Now().Sub(back_time).Seconds()))
+					fmt.Println("current change weight: ",change_weight/1024/1024,"m")
+					var mStat runtime.MemStats
+					runtime.ReadMemStats(&mStat)
+					fmt.Println("HeapAlloc:", mStat.HeapAlloc/1024/1024,"m")
+					fmt.Println("HeapIdle:", mStat.HeapIdle/1024/1024,"m")
+					fmt.Println("chan size:",len(blockdata_chan))
+				}
 			}
-		}
-		for _,height:= range height_cache{
-			blockdata :=cache_map[height]
-			blockdata_chan <- blockdata
 
-			size,_ := blockdata.Get("result").Get("size").Int()
-			atomic.AddInt64(&total_size,int64(size))
-			tx_array,_ := blockdata.Get("result").Get("tx").Array()
-			atomic.AddInt64(&total_trx_size,int64(len(tx_array)))
-			if height % 1000 == 0{
-				tmp_height,_ :=blockdata.Get("result").Get("height").Int()
-				fmt.Println("block height",tmp_height)
-				fmt.Println( "total size: ", total_size / 1024 / 1024, " MB")
-				fmt.Println( "total trx count: ", total_trx_size)
-				fmt.Println( "now :", time.Now() )
-				fmt.Println( "cost time : ", time.Now().Sub(back_time))
-				fmt.Println( "blocks per sec : ", float32(height-global_start_height) / float32(time.Now().Sub(back_time).Seconds()))
-				fmt.Println( "trxs per sec: ", float32(total_trx_size) / float32(time.Now().Sub(back_time).Seconds()))
-				fmt.Println("current change weight: ",change_weight/1024/1024,"m")
-				var mStat runtime.MemStats
-				runtime.ReadMemStats(&mStat)
-				fmt.Println("HeapAlloc:", mStat.HeapAlloc/1024/1024,"m")
-				fmt.Println("HeapIdle:", mStat.HeapIdle/1024/1024,"m")
-				fmt.Println("chan size:",len(blockdata_chan))
+		}
+	}else{
+		delta_size := 1
+		one_batch_count :=1
+
+
+		for ;;{
+			height_cache := make([]int,0,delta_size)
+
+			data_chan := make(chan map[int]simplejson.Json,delta_size)
+
+
+			for i:=0;i<delta_size;i++{
+				once_height := <- height_chan
+				if once_height == -1{
+
+					handle_count := ceil(len(height_cache),one_batch_count)
+					wg_collect.Add(handle_count)
+					for j:=0;j<handle_count;j++{
+						if j==handle_count-1{
+							go one_collect_data(data_chan,height_cache[j*one_batch_count:])
+						}else{
+							go one_collect_data(data_chan,height_cache[j*one_batch_count:(j+1)*one_batch_count])
+						}
+
+					}
+					wg_collect.Wait()
+					cache_map := make(map[int]simplejson.Json)
+					for j:=0;j<len(height_cache);j++{
+						tmp_data:= <- data_chan
+						for k,v := range tmp_data{
+							cache_map[k] = v
+						}
+					}
+					for _,height:= range height_cache{
+						blockdata_chan <- cache_map[height]
+					}
+					fmt.Println("collect exit")
+
+					json_data,_ :=simplejson.NewJson([]byte("{\"result\":\"exit\"}"))
+					blockdata_chan <- *json_data
+					return
+				}
+				height_cache = append(height_cache,once_height)
+
 			}
-		}
+			wg_collect.Add(1)
+			for j:=0;j<1;j++{
+				go one_collect_data(data_chan,height_cache[j*one_batch_count:(j+1)*one_batch_count])
+			}
 
+			wg_collect.Wait()
+			cache_map := make(map[int]simplejson.Json)
+			for j:=0;j<delta_size;j++{
+				tmp_data:= <- data_chan
+				for k,v := range tmp_data{
+					cache_map[k] = v
+				}
+			}
+			for _,height:= range height_cache{
+				blockdata :=cache_map[height]
+				blockdata_chan <- blockdata
+
+				size,_ := blockdata.Get("result").Get("size").Int()
+				atomic.AddInt64(&total_size,int64(size))
+				tx_array,_ := blockdata.Get("result").Get("tx").Array()
+				atomic.AddInt64(&total_trx_size,int64(len(tx_array)))
+				if height % 1000 == 0{
+					tmp_height,_ :=blockdata.Get("result").Get("height").Int()
+					fmt.Println("block height",tmp_height)
+					fmt.Println( "total size: ", total_size / 1024 / 1024, " MB")
+					fmt.Println( "total trx count: ", total_trx_size)
+					fmt.Println( "now :", time.Now() )
+					fmt.Println( "cost time : ", time.Now().Sub(back_time))
+					fmt.Println( "blocks per sec : ", float32(height-global_start_height) / float32(time.Now().Sub(back_time).Seconds()))
+					fmt.Println( "trxs per sec: ", float32(total_trx_size) / float32(time.Now().Sub(back_time).Seconds()))
+					fmt.Println("current change weight: ",change_weight/1024/1024,"m")
+					var mStat runtime.MemStats
+					runtime.ReadMemStats(&mStat)
+					fmt.Println("HeapAlloc:", mStat.HeapAlloc/1024/1024,"m")
+					fmt.Println("HeapIdle:", mStat.HeapIdle/1024/1024,"m")
+					fmt.Println("chan size:",len(blockdata_chan))
+				}
+			}
+
+		}
 	}
+
 	fmt.Println("collect_block is done")
 }
 
@@ -360,6 +485,7 @@ func flush_db(){
 	addr_utxo_spent_cache = make([]string,0,2000000)
 	write_address_trx_data = make(map[string]interface{},0)
 	trxId_cache	= make(	[][]byte,0,4000000)
+	atomic.StoreInt32(&change_weight,int32(0))
 }
 
 func get_utxo(utxo_prefix string) interface{}{
@@ -419,7 +545,7 @@ func add_utxo(utxo_prefix string,value interface{},address string,addr_utxo_pref
 	utxo_obj.ScriptPubKey = &scriptPubkey
 	utxo_cache[utxo_prefix] = utxo_obj
 	addr_utxo_cache[addr_utxo_prefix] = utxo_obj
-	atomic.AddInt32(&change_weight,int32(180))
+	atomic.AddInt32(&change_weight,int32(230))
 
 	//err:=unspent_utxo_db.Insert(utxo_query).Exec(session)
 	//if err!=nil{
@@ -585,7 +711,9 @@ func handle_block(blockdata_chan chan simplejson.Json,interval int){
 					continue
 				}
 				vin_txid,txid_exist := vin["txid"]
-
+				if vin_txid.(string) =="0000000000000000000000000000000000000000000000000000000000000000"{
+					continue
+				}
 				vout,vout_exist := vin["vout"]
 				vout_data,_ := vout.(json.Number).Int64()
 
@@ -647,7 +775,9 @@ func handle_block(blockdata_chan chan simplejson.Json,interval int){
 			trx_counts ++
 		}
 		last_height = tmp_height
-		if change_weight>int32(interval){
+		if int32(interval) == 1{
+			flush_db()
+		} else if change_weight>int32(interval){
 			flush_db()
 
 			change_weight = 0
@@ -749,14 +879,14 @@ func main(){
 	}
 	//vin := &pro.TrxObject_VIN{}
 	param := make([]interface{},0)
-	json_data := link_client.LinkHttpFunc("getblockchaininfo",&param )
+	json_data := link_client.LinkHttpFunc(config.RpcServerConfig.GetInfoFunctionName[ChainType],&param ,config.RpcServerConfig.IsTls[ChainType])
 	count,_ := json_data.Get("result").Get("blocks").Int()
 	count = count - config.RpcServerConfig.SafeBlock[ChainType]
 	fmt.Println("chain height",count)
 	global_start_height  = height
 	blockdata_chan := make(chan simplejson.Json,40)
 	height_chan := make(chan int,40)
-	go collect_block(height_chan,blockdata_chan)
+	go collect_block(height_chan,blockdata_chan,true)
 	//go collect_block(height_chan,blockdata_chan)
 	//go collect_block(height_chan,blockdata_chan)
 	//go collect_block(height_chan,blockdata_chan)
@@ -784,7 +914,7 @@ func main(){
 	if !is_done{
 
 		wg.Add(2)
-		go collect_block(height_chan,blockdata_chan)
+		go collect_block(height_chan,blockdata_chan,false)
 		go handle_block(blockdata_chan,1)
 
 		go startRpcServer()
@@ -793,7 +923,7 @@ func main(){
 		for ;!is_done;{
 
 			param := make([]interface{},0)
-			json_data := link_client.LinkHttpFunc("getblockchaininfo",&param )
+			json_data := link_client.LinkHttpFunc(config.RpcServerConfig.GetInfoFunctionName[ChainType],&param ,config.RpcServerConfig.IsTls[ChainType])
 			//fmt.Println(json_data)
 			count,_ := json_data.Get("result").Get("blocks").Int()
 			count = count - config.RpcServerConfig.SafeBlock[ChainType]
