@@ -93,43 +93,40 @@ func (client * LinkClient)LinkHttpFunc(function string,params *[]interface{},ist
 	message :="{ \"id\": 1, \"method\": \""+function+"\", \"params\": "+strParams+"}"
 	payload := strings.NewReader(message)
 	//fmt.Println(payload)
-	for {
-		req, err := http.NewRequest("POST", client.IP+":"+client.Port, payload)
+	req, err := http.NewRequest("POST", client.IP+":"+client.Port, payload)
 
-		if err != nil{
-			fmt.Println("x")
-			fmt.Println(err.Error())
-			return nil
-		}
-		req.Header.Add("content-type", "text/plain")
-		if client.User != "" && client.PassWord != ""{
-			encodeUser := base64.StdEncoding.EncodeToString([]byte((*client).User+":"+(*client).PassWord))
-			req.Header.Add("authorization", "Basic "+ encodeUser)
-		}
-		res, err := clienta.Do(req)
-		if err != nil{
-			fmt.Println("1")
-			fmt.Println(err.Error())
-			return nil
-		}
-		defer res.Body.Close()
-		body, err := ioutil.ReadAll(res.Body)
-		if err != nil{
-			fmt.Println("2")
-			fmt.Println(err.Error())
-			return nil
-		}
-		js,err:= simplejson.NewJson(body)
-		if err != nil{
-			fmt.Println("3")
-			fmt.Println(string(body))
-			fmt.Println(err.Error())
-			return nil
-		}
-		//fmt.Println(js)
-		return js
+	if err != nil{
+		fmt.Println("x")
+		fmt.Println(err.Error())
+		return nil
 	}
-
+	req.Header.Add("content-type", "text/plain")
+	if client.User != "" && client.PassWord != ""{
+		encodeUser := base64.StdEncoding.EncodeToString([]byte((*client).User+":"+(*client).PassWord))
+		req.Header.Add("authorization", "Basic "+ encodeUser)
+	}
+	res, err := clienta.Do(req)
+	if err != nil{
+		fmt.Println("1")
+		fmt.Println(err.Error())
+		return nil
+	}
+	defer res.Body.Close()
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil{
+		fmt.Println("2")
+		fmt.Println(err.Error())
+		return nil
+	}
+	js,err:= simplejson.NewJson(body)
+	if err != nil{
+		fmt.Println("3")
+		fmt.Println(string(body))
+		fmt.Println(err.Error())
+		return nil
+	}
+	//fmt.Println(js)
+	return js
 }
 func (client * LinkClient)HttpRpcFunction(function string,param *[]interface{})string{
 	url:="http://"+(*client).IP+":"+(*client).Port
