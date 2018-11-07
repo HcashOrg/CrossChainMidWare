@@ -4,15 +4,27 @@ import requests
 import json
 from base64 import encodestring
 from service import logger
-from config import Db
-db = Db
+# from config import Db
+
+# db = Db
+
 class sim_btc_utils:
     def __init__(self, name, conf):
         self.name = name
         self.config = conf
 
+
+    def collect_http_request(self, method, args):
+        url = "http://%s:%s" % (self.config["collect_host"], self.config["collect_port"])
+        return self.base_http_request(url, method, args)
+
+
     def http_request(self, method, args):
         url = "http://%s:%s" % (self.config["host"], self.config["port"])
+        return self.base_http_request(url, method, args)
+
+
+    def base_http_request(self, url, method, args):
         user = 'a'
         passwd = 'b'
         basestr = encodestring('%s:%s' % (user, passwd))[:-1]
@@ -28,6 +40,7 @@ class sim_btc_utils:
         rep = response.json()
         logger.info(rep)
         return rep
+
 
     def sim_btc_create_multisig(self, addrs, amount):
         resp = self.http_request("createmultisig", [amount, addrs])
@@ -47,12 +60,12 @@ class sim_btc_utils:
             address = resp["result"]
         return address
 
-    def sim_btc_validate_address(self, addr):
-        resp = self.http_request("validateaddress", [addr])
-        if resp["result"] != None:
-            return resp["result"]
-        else:
-            return None
+    # def sim_btc_validate_address(self, addr):
+    #     resp = self.http_request("validateaddress", [addr])
+    #     if resp["result"] != None:
+    #         return resp["result"]
+    #     else:
+    #         return None
 
     def sim_btc_create_address(self):
         resp = self.http_request("getnewaddress", [""])
@@ -90,48 +103,35 @@ class sim_btc_utils:
             result = resp["result"]
         return result
 
+
     def sim_btc_decode_hex_transaction(self,trx_hex):
         resp = self.http_request("decoderawtransaction", [trx_hex])
         if resp["result"] is not None :
             return resp["result"]
         return ""
-
-    
+   
 
     def sim_btc_get_transaction(self, trxid):
         resp = self.http_request("getrawtransaction", [trxid,True])
         if resp["result"] != None:
             return resp["result"]
         return ""
+
+
     def sim_btc_import_addr(self, addr):
         self.http_request("importaddress",[addr,"",False])
 
+
     def sim_btc_get_trx_out(self,addr):
         result = []
-        chainId = self.name.lower()
-        record_unspent = db.b_balance_unspent.find_one({'chainId': chainId, 'address': addr})
-        if record_unspent is None:
-            return result
-        trx_unspent = record_unspent.get("trxdata")
-        trx_spent = []
-        record_spent = db.b_balance_spent.find_one({'chainId': chainId, 'address': addr})
-        if record_spent is not None :
-            trx_spent = record_spent.get("trxdata")
-        unspent = []
-        for trx in trx_unspent:
-            if trx not in trx_spent:
-                unspent.append(trx)
-        for id in unspent:
-            pos1 = len(chainId)
-            id = id[pos1:]
-            pos2 = id.find('I')
-            index = id[pos2 + 1:]
-            id = id[0:pos2]
-            tx = self.sim_btc_get_transaction(id)
-            vout = round(float(tx.get("vout")[int(index)].get("value")), 8)
-            scriptPubKey = tx.get("vout")[int(index)].get("scriptPubKey").get("hex")
-            result.append({"amount":vout,"txid":id,"vout":index,"scriptPubKey":scriptPubKey})
+        resp = self.collect_http_request("Service.ListUnSpent", [addr])
+        if resp["result"] != None:
+            trx_unspent = resp["result"]
+            for tx in trx_unspent:
+                result.append({"amount":tx["value"],"txid":tx["txid"],"vout":tx["vout"],"scriptPubKey":tx["scriptPubKey"]})
         return result
+
+
     def sim_btc_create_transaction(self, from_addr, dest_info):
         txout = self.sim_btc_get_trx_out(from_addr)
         if len(txout) == 0 :

@@ -24,6 +24,8 @@ for value in sim_btc_utils_all:
     if app.config.has_key(upper+"_HOST") and app.config.has_key(upper+"_PORT") and app.config.has_key(upper + "_FEE"):
         sim_btc_config["host"] = app.config[upper+"_HOST"]
         sim_btc_config["port"] = app.config[upper+"_PORT"]
+        sim_btc_config["collect_host"] = app.config[upper+"_COLLECT_HOST"]
+        sim_btc_config["collect_port"] = app.config[upper+"_COLLECT_PORT"]
         sim_btc_config["fee"] = app.config[upper+"_FEE"]
         sim_btc_plugin[value] = sim_btc_utils(value, sim_btc_config)
 hc_config = {}
