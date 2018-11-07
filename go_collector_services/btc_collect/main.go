@@ -387,7 +387,7 @@ func spent_utxo(utxo_prefix string,addr_utxo_prefix string){
 	_,exist :=utxo_cache[utxo_prefix]
 	if exist{
 		delete(utxo_cache, utxo_prefix)
-		atomic.AddInt32(&change_weight,int32(-50))
+		atomic.AddInt32(&change_weight,int32(-180))
 	}else{
 		utxo_spent_cache =append(utxo_spent_cache, utxo_prefix)
 		atomic.AddInt32(&change_weight,int32(68))
@@ -411,14 +411,15 @@ func spent_utxo(utxo_prefix string,addr_utxo_prefix string){
 }
 
 
-func add_utxo(utxo_prefix string,value interface{},address string,addr_utxo_prefix string){
+func add_utxo(utxo_prefix string,value interface{},address string,addr_utxo_prefix string,scriptPubkey string){
 	data_value:=strconv.FormatFloat(value.(float64),'f',8,32)
 	utxo_obj := pro.UTXOObject{}
 	utxo_obj.Value = &data_value
 	utxo_obj.Address = &address
+	utxo_obj.ScriptPubKey = &scriptPubkey
 	utxo_cache[utxo_prefix] = utxo_obj
 	addr_utxo_cache[addr_utxo_prefix] = utxo_obj
-	atomic.AddInt32(&change_weight,int32(100))
+	atomic.AddInt32(&change_weight,int32(180))
 
 	//err:=unspent_utxo_db.Insert(utxo_query).Exec(session)
 	//if err!=nil{
@@ -474,7 +475,7 @@ func bin_to_b58check(data []byte,magic_byte byte) string{
 	return address
 }
 
-func get_vout_address(script map[string]interface{}) string{
+func get_vout_address(script map[string]interface{}) (string,string){
 
 	script_type_json,exist :=script["type"]
 	if exist{
@@ -482,21 +483,29 @@ func get_vout_address(script map[string]interface{}) string{
 		if script_type =="multisig"{
 			//改成直接获取
 			hex_bytes,_:=hex.DecodeString(script["hex"].(string))
-			return bin_to_b58check(hex_bytes, byte(config.RpcServerConfig.MULTISIGVERSION[ChainType]))
+			return bin_to_b58check(hex_bytes, byte(config.RpcServerConfig.MULTISIGVERSION[ChainType])),script["hex"].(string)
 
 		}else if script_type =="nonstandard" {
-			return ""
+			hex_str,exist := script["hex"]
+			if exist{
+				return "",hex_str.(string)
+			}
+			return "",""
 		}else{
 			addresses,exist := script["addresses"]
 			if exist{
 				tmp_arr :=addresses.([]interface {})
-				return tmp_arr[0].(string)
+				return tmp_arr[0].(string),script["hex"].(string)
 			}else{
-				return ""
+				hex_str,exist := script["hex"]
+				if exist{
+					return "",hex_str.(string)
+				}
+				return "",script["hex"].(string)
 			}
 		}
 	}else{
-		return ""
+		return "",""
 	}
 }
 func add_addr_trx_releation(trx_num int32,address string){
@@ -624,14 +633,14 @@ func handle_block(blockdata_chan chan simplejson.Json,interval int){
 					n_data,_ = n.(json.Number).Int64()
 				}
 				//cal vout address
-				affect_address:= get_vout_address(script)
+				affect_address,script_pubkey:= get_vout_address(script)
 				//新增关系记录
 				add_addr_trx_releation(trx_counts,affect_address)
 
 				//插入utxo
 				utxo_prefix := cal_utxo_prefix(trx_Id,int(n_data))
 				addr_utxo_prefix := cal_addr_utxo_prefix(affect_address,trx_Id,int(n_data))
-				add_utxo(utxo_prefix,value_data,affect_address,addr_utxo_prefix)
+				add_utxo(utxo_prefix,value_data,affect_address,addr_utxo_prefix,script_pubkey)
 			}
 			//trx_map_obj["vouts"] = vouts_map
 			//write_trx_data = append(write_trx_data,trx_map_obj)
@@ -751,7 +760,7 @@ func main(){
 	//go collect_block(height_chan,blockdata_chan)
 	//go collect_block(height_chan,blockdata_chan)
 	//go collect_block(height_chan,blockdata_chan)
-	go handle_block(blockdata_chan,500000000)
+	go handle_block(blockdata_chan,50000000)
 	//for i:=0;i<1;i++{
 	//	go handle_block(blockdata_chan)
 	//}
