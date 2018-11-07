@@ -27,7 +27,7 @@ class hc_utils:
         args_j = json.dumps(args)
         payload =  "{\"jsonrpc\":\"1.0\",\r\n \"id\": 1,\r\n \"method\": \"%s\",\r\n \"params\": %s\r\n}" % (method, args_j)
         headers = {
-            'content-type': "text/plain",
+            'content-type': "application/json",
             'authorization': "Basic %s" % (basestr),
             'cache-control': "no-cache",
         }

@@ -21,9 +21,9 @@ type ServerConfig struct{
 }
 var RpcServerConfig = ServerConfig{RpcListenEndPoint:map[string]string{"BTC":"0.0.0.0:5444","BTC_TEST":"0.0.0.0:5446", "LTC":"0.0.0.0:5445","HC":"0.0.0.0:5447","HC_TEST":"0.0.0.0:5449"},
 	GetInfoFunctionName:map[string]string{"BTC":"getblockchaininfo","BTC_TEST":"getblockchaininfo", "LTC":"getblockchaininfo","HC":"getinfo","HC_TEST":"getinfo"},
-	IsTls:map[string]bool{"BTC":false,"BTC_TEST":false, "LTC":false,"HC":true,"HC_TEST":false},
+	IsTls:map[string]bool{"BTC":false,"BTC_TEST":false, "LTC":false,"HC":false,"HC_TEST":false},
 	IsOldFunctionLevel:map[string]bool{"BTC":false,"BTC_TEST":false, "LTC":false,"HC":true,"HC_TEST":true},
-	SourceDataHost:map[string]string{"BTC":"http://btc_wallet","BTC_TEST":"http://192.168.1.124", "LTC":"http://ltc_wallet","HC":"https://hc_wallet","HC_TEST":"http://127.0.0.1"},
+	SourceDataHost:map[string]string{"BTC":"http://btc_wallet","BTC_TEST":"http://192.168.1.124", "LTC":"http://ltc_wallet","HC":"http://hc_wallet","HC_TEST":"http://127.0.0.1"},
 	SourceDataPort:map[string]string{"BTC":"60011","BTC_TEST":"10001", "LTC":"60012","HC":"19020","HC_TEST":"19019"},
 	SourceDataUserName:map[string]string{"BTC":"a","BTC_TEST":"test", "LTC":"a","HC":"a","HC_TEST":"a"},
 	SourceDataPassword:map[string]string{"BTC":"b","BTC_TEST":"test", "LTC":"b","HC":"b","HC_TEST":"b"},
