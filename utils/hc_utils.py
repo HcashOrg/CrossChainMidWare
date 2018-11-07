@@ -11,9 +11,16 @@ class hc_utils:
         self.name = name
         self.config = conf
 
+    def collect_http_request(self, method, args):
+        url = "http://%s:%s" % (self.config["collect_host"], self.config["collect_port"])
+        return self.base_http_request(url, method, args)
+
+
     def http_request(self, method, args):
-        url = "https://%s:%s" % (self.config["host"], self.config["port"])
-        #print(url)
+        url = "http://%s:%s" % (self.config["host"], self.config["port"])
+        return self.base_http_request(url, method, args)
+
+    def base_http_request(self, url, method, args):
         user = 'a'
         passwd = 'b'
         basestr = encodestring('%s:%s' % (user, passwd))[:-1]
@@ -31,6 +38,7 @@ class hc_utils:
         rep = response.json()
         #print(rep)
         return rep
+
     def hc_create_multisig(self, addrs, amount):
         resp = self.http_request("createmultisig", [amount, addrs])
         if resp["result"] != None:
@@ -41,12 +49,14 @@ class hc_utils:
             return resp["result"]
         else:
             return None
+
     def hc_validate_address(self, addr):
         resp = self.http_request("validateaddress", [addr])
         address = ""
         if resp["result"] != None:
             address = resp["result"]
         return address
+
     def hc_create_address(self):
         resp = self.http_request("getnewaddress", [])
         address = ""
@@ -97,29 +107,11 @@ class hc_utils:
 
     def hc_get_trx_out(self, addr):
         result = []
-        chainId = self.name.lower()
-        record_unspent = db.b_balance_unspent.find_one({'chainId': chainId, 'address': addr})
-        if record_unspent is None:
-            return result
-        trx_unspent = record_unspent.get("trxdata")
-        trx_spent = []
-        record_spent = db.b_balance_spent.find_one({'chainId': chainId, 'address': addr})
-        if record_spent is not None:
-            trx_spent = record_spent.get("trxdata")
-        unspent = []
-        for trx in trx_unspent:
-            if trx not in trx_spent:
-                unspent.append(trx)
-        for id in unspent:
-            pos1 = len(chainId)
-            id = id[pos1:]
-            pos2 = id.find('I')
-            index = id[pos2 + 1:]
-            id = id[0:pos2]
-            tx = self.hc_get_transaction(id)
-            vout = round(float(tx.get("vout")[int(index)].get("value")), 8)
-            scriptPubKey = tx.get("vout")[int(index)].get("scriptPubKey").get("hex")
-            result.append({"amount": vout, "txid": id, "vout": index, "scriptPubKey": scriptPubKey})
+        resp = self.collect_http_request("Service.ListUnSpent", [addr])
+        if resp["result"] != None:
+            trx_unspent = resp["result"]
+            for tx in trx_unspent:
+                result.append({"amount":tx["value"],"txid":tx["txid"],"vout":tx["vout"],"scriptPubKey":tx["scriptPubKey"]})
         return result
 
 

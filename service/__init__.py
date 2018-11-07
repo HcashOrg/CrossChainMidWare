@@ -32,6 +32,8 @@ hc_config = {}
 if app.config.has_key("HC_HOST") and app.config.has_key("HC_PORT") and app.config.has_key("HC_FEE"):
     hc_config["host"] = app.config["HC_HOST"]
     hc_config["port"] = app.config["HC_PORT"]
+    hc_config["collect_host"] = app.config["HC_COLLECT_HOST"]
+    hc_config["collect_port"] = app.config["HC_COLLECT_PORT"]
     hc_config["fee"] = app.config["HC_FEE"]
 hc_plugin = hc_utils("hc", hc_config)
 from service import sim_api
