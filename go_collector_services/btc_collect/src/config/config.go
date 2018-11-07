@@ -24,7 +24,7 @@ var RpcServerConfig = ServerConfig{RpcListenEndPoint:map[string]string{"BTC":"0.
 	IsTls:map[string]bool{"BTC":false,"BTC_TEST":false, "LTC":false,"HC":false,"HC_TEST":false},
 	IsOldFunctionLevel:map[string]bool{"BTC":false,"BTC_TEST":false, "LTC":false,"HC":true,"HC_TEST":true},
 	SourceDataHost:map[string]string{"BTC":"http://btc_wallet","BTC_TEST":"http://192.168.1.124", "LTC":"http://ltc_wallet","HC":"http://hc_wallet","HC_TEST":"http://127.0.0.1"},
-	SourceDataPort:map[string]string{"BTC":"60011","BTC_TEST":"10001", "LTC":"60012","HC":"19020","HC_TEST":"19019"},
+	SourceDataPort:map[string]string{"BTC":"60011","BTC_TEST":"10001", "LTC":"60012","HC":"19021","HC_TEST":"19019"},
 	SourceDataUserName:map[string]string{"BTC":"a","BTC_TEST":"test", "LTC":"a","HC":"a","HC_TEST":"a"},
 	SourceDataPassword:map[string]string{"BTC":"b","BTC_TEST":"test", "LTC":"b","HC":"b","HC_TEST":"b"},
 	DbPathConfig:map[string]string{"BTC":"/hx/btc_collect_data/","BTC_TEST":"h:/btc_collect_test/", "LTC":"/hx/ltc_collect_data/","HC":"/hx/hc_collect_data/","HC_TEST":"h:/hc_collect/"},
