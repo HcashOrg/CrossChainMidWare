@@ -150,7 +150,10 @@ class hc_utils:
         if round(sum-amount,8) == fee:
             resp = self.http_request("createrawtransaction", [vins, vouts])
         else:
-            vouts[from_addr] = round(sum - amount - fee,8)
+            if vouts.has_key(from_addr):
+                vouts[from_addr] = round(sum - amount - fee + vouts[from_addr],8)
+            else:
+                vouts[from_addr] = round(sum - amount - fee,8)
             resp = self.http_request("createrawtransaction", [vins, vouts])
         if resp["result"] != None:
             trx_hex = resp['result']
