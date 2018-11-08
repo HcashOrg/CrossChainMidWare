@@ -75,7 +75,7 @@ func one_collect_data(data_chan chan map[int]simplejson.Json,height []int){
 	for _,once_height := range height{
 		param := make([]interface{},0)
 		param = append(param,once_height)
-		blockhash,_ := link_client.LinkHttpFunc("getblockhash",&param ,config.RpcServerConfig.IsTls[ChainType]).Get("result").String()
+		blockhash,_ := link_client.SafeLinkHttpFunc("getblockhash",&param ,config.RpcServerConfig.IsTls[ChainType]).Get("result").String()
 		param_getblock := make([]interface{},0)
 		param_getblock = append(param_getblock,blockhash)
 		if config.RpcServerConfig.IsOldFunctionLevel[ChainType]{
@@ -86,7 +86,7 @@ func one_collect_data(data_chan chan map[int]simplejson.Json,height []int){
 			param_getblock = append(param_getblock,2)
 		}
 
-		blockdata := link_client.LinkHttpFunc("getblock",&param_getblock,config.RpcServerConfig.IsTls[ChainType] )
+		blockdata := link_client.SafeLinkHttpFunc("getblock",&param_getblock,config.RpcServerConfig.IsTls[ChainType] )
 		if config.RpcServerConfig.IsOldFunctionLevel[ChainType]{
 			tx_datas,_ := blockdata.Get("result").Get("tx").Array()
 			stx_datas,_ := blockdata.Get("result").Get("stx").Array()
@@ -95,7 +95,7 @@ func one_collect_data(data_chan chan map[int]simplejson.Json,height []int){
 				param_gettransaction := make([]interface{},0)
 				param_gettransaction = append(param_gettransaction,txids.(string))
 				param_gettransaction = append(param_gettransaction,2)
-				tx_data := link_client.LinkHttpFunc("getrawtransaction",&param_gettransaction ,config.RpcServerConfig.IsTls[ChainType])
+				tx_data := link_client.SafeLinkHttpFunc("getrawtransaction",&param_gettransaction ,config.RpcServerConfig.IsTls[ChainType])
 				map_data,err := tx_data.Get("result").Map()
 				if err!=nil{
 					fmt.Println(err.Error())
@@ -879,7 +879,7 @@ func main(){
 	}
 	//vin := &pro.TrxObject_VIN{}
 	param := make([]interface{},0)
-	json_data := link_client.LinkHttpFunc(config.RpcServerConfig.GetInfoFunctionName[ChainType],&param ,config.RpcServerConfig.IsTls[ChainType])
+	json_data := link_client.SafeLinkHttpFunc(config.RpcServerConfig.GetInfoFunctionName[ChainType],&param ,config.RpcServerConfig.IsTls[ChainType])
 	count,_ := json_data.Get("result").Get("blocks").Int()
 	count = count - config.RpcServerConfig.SafeBlock[ChainType]
 	fmt.Println("chain height",count)
@@ -923,7 +923,7 @@ func main(){
 		for ;!is_done;{
 
 			param := make([]interface{},0)
-			json_data := link_client.LinkHttpFunc(config.RpcServerConfig.GetInfoFunctionName[ChainType],&param ,config.RpcServerConfig.IsTls[ChainType])
+			json_data := link_client.SafeLinkHttpFunc(config.RpcServerConfig.GetInfoFunctionName[ChainType],&param ,config.RpcServerConfig.IsTls[ChainType])
 			//fmt.Println(json_data)
 			count,_ := json_data.Get("result").Get("blocks").Int()
 			count = count - config.RpcServerConfig.SafeBlock[ChainType]
