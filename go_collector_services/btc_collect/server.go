@@ -148,7 +148,7 @@ func (s *Service) ListUnSpent(r *http.Request, args *string, reply *[]map[string
 			continue
 		}
 		tmp_value,err := strconv.ParseFloat(*utxo_obj.Value,64)
-		if tmp_value<=0{
+		if tmp_value<=0.0001{
 			continue
 		}
 		tmp_map := make(map[string]interface{})
