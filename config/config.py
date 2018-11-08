@@ -50,11 +50,13 @@ class DevelopmentConfig(Config):
     LTC_COLLECT_HOST = 'localhost'
     LTC_COLLECT_PORT = 5445
     LTC_FEE =0.001
-    HC_HOST = "127.0.0.1"
-    HC_PORT = 19020
+    HC_HOST = "hc_wallet"
+    HC_PORT = 19021
+    HC_COLLECT_HOST = "localhost"
+    HC_COLLECT_PORT = 5447
     HC_FEE = 0.001
-    QUERY_SERVICE_HOST = "192.168.1.142"
-    QUERY_SERVICE_PORT = 5444
+    # QUERY_SERVICE_HOST = "192.168.1.142"
+    # QUERY_SERVICE_PORT = 5444
 
 
 class DaConfig(Config):
