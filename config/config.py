@@ -34,8 +34,8 @@ class DevelopmentConfig(Config):
     MONGO_USER = 'chaindb_user'
     MONGO_PASS = 'yqr.1010'
     ETH_SECRET_KEY = 'Q!wert123@'
-    ETH_URL = 'eth_wallet'
-    ETH_PORT = 8545
+    ETH_URL = '127.0.0.1'
+    ETH_PORT = 5544
     ETH_FEE = 0.025
     ETH_Minimum = 0.5
     BTC_HOST = 'btc_wallet'
