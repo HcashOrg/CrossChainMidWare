@@ -1,23 +1,27 @@
 # chain_common_api
-  区块链中间件，对上层应用提供友好的接口。主要用于以下场景：
-  1. 充值/提现（交易所，ICO平台）
+  CrossChainMidware for the HyperExchange：
+  1. provide coins API for HX
+  2. collect coins history
 
-  支持数字货币：
+  supported coins：
   1. BTC
   2. ETH
-  3. ETP
+  3. LTC
+  4. HC
 
-# 目录说明
+# Directory Info
 
 ## config
-  存储应用和数据库配置。
+  Store configurations for app and database.
 
 ## mgmt
-  存储管理脚本。
+  Management scripts for 
 
 ## service
-  存储JSON-RPC服务的主要代码。
+  JSON-RPC APIs implementation.
 
-## wallets
-  存储支持的钱包程序和数据。也可能是安装脚本/步骤。
+## btc_data_collector
+  Collector for BTC/LTC/HC.
 
+## go_collector_services
+  Collector for ETH.
