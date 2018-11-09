@@ -4,7 +4,6 @@ import (
 	"encoding/binary"
 	"strconv"
 	"strings"
-	"fmt"
 )
 
 func Int64ToBytes(i int64) []byte {
@@ -28,7 +27,6 @@ func BytesToInt32(buf []byte) int32 {
 	return int32(binary.BigEndian.Uint32(buf))
 }
 func SplitAddrUtxoPrefix(prefix string)(string,int){
-	fmt.Println(prefix)
 	 start := strings.Index(prefix,"O")
 	 end := strings.Index(prefix,"I")
 	 txid := prefix[start+1:end]

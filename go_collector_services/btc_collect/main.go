@@ -538,7 +538,7 @@ func spent_utxo(utxo_prefix string,addr_utxo_prefix string){
 
 
 func add_utxo(utxo_prefix string,value interface{},address string,addr_utxo_prefix string,scriptPubkey string){
-	data_value:=strconv.FormatFloat(value.(float64),'f',8,32)
+	data_value:=strconv.FormatFloat(value.(float64),'f',8,64)
 	utxo_obj := pro.UTXOObject{}
 	utxo_obj.Value = &data_value
 	utxo_obj.Address = &address

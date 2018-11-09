@@ -171,6 +171,46 @@ func (s *Service) ListUnSpent(r *http.Request, args *string, reply *[]map[string
 }
 
 
+// address
+func (s *Service) GetBalance(r *http.Request, args *string, reply *float64) error {
+	prefix := ChainType+(*args)[:20]+"O"
+	query_range := util.BytesPrefix([]byte(prefix))
+	iter := addr_unspent_utxo_db.NewIterator(query_range,nil)
+	list_unspent_datas := make(map[string]string)
+	if iter.First(){
+		data := iter.Value()
+		list_unspent_datas[string(iter.Key())] = string(data)
+		for ;iter.Next();{
+			data := iter.Value()
+			list_unspent_datas[string(iter.Key())] = string(data)
+			data = make([]byte,0)
+		}
+
+	}
+
+	balance := 0.0
+	for _,v := range list_unspent_datas{
+		utxo_obj:= pro.UTXOObject{}
+		err :=proto.Unmarshal([]byte(v),&utxo_obj)
+		if err!=nil{
+			fmt.Println(err)
+			continue
+		}
+		if *utxo_obj.Address != *args{
+			fmt.Println(utxo_obj.Address , *args)
+			continue
+		}
+		tmp_value,err := strconv.ParseFloat(*utxo_obj.Value,64)
+		balance += tmp_value
+
+	}
+	*reply = balance
+
+	return nil
+}
+
+
+
 func rpcServer(args ...interface{}) {
 	defer wg_server.Done()
 	rpcServer := rpc.NewServer()
