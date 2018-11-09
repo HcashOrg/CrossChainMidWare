@@ -12,6 +12,7 @@ from collect_hc_block import HCCoinTxCollecter
 import logging
 import sys
 import signal
+import time
 from pymongo import MongoClient
 
 if __name__ == '__main__':
@@ -38,6 +39,7 @@ if __name__ == '__main__':
     elif sys.argv[1] == "ub":
         collector = UBCoinTxCollecter(db)
     elif sys.argv[1] == "bk":
+        time.sleep(3)
         collector = BKCoinTxCollector(db)
     elif sys.argv[1] == "hc":
         collector = HCCoinTxCollecter(db)

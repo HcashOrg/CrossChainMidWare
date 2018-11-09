@@ -30,6 +30,9 @@ class BKCoinTxCollector(CoinTxCollector):
 
 
     def do_collect_app(self):
+        self.wallet_api.http_request("set_password", ["12345678"])
+        self.wallet_api.http_request("unlock", ["12345678"])
+        self.wallet_api.http_request("wallet_create_account", ["hxcollector"])
         while self.stop_flag is False:
             self.collect_token_contract()
             time.sleep(10)
@@ -57,9 +60,10 @@ class BKCoinTxCollector(CoinTxCollector):
             return False
         offline_abi = ret['result']['code_printable']['offline_abi']
         for abi in BKCoinTxCollector.std_offline_abi:
-            if offline_abi.index(abi) >= 0:
-                logging.debug(abi)
-            else:
+            try:
+                if offline_abi.index(abi) >= 0:
+                    logging.debug(abi)
+            except:
                 logging.info("Not standard token contract: " + abi)
                 return False
         ret = self.wallet_api.http_request("invoke_contract_offline",
@@ -68,7 +72,7 @@ class BKCoinTxCollector(CoinTxCollector):
             logging.debug("Contract state is good: " + contract_address + " | " + ret['result'])
             return True
         else:
-            logging.info("Contract state error: " + contract_address + " | " + ret['result'])
+            logging.info("Contract state error: " + contract_address + " | " + str(ret))
             return False
 
 
