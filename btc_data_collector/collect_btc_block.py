@@ -39,104 +39,43 @@ class CacheManager(object):
     def __init__(self, sync_key, symbol):
         self.sync_key = sync_key
         self.multisig_address_cache = set()
-        self.raw_transaction_cache = []
         self.block_cache = []
         self.withdraw_transaction_cache = []
         self.deposit_transaction_cache = []
-        self.utxo_cache = {}
-        self.utxo_flush_cache = {}
-        self.utxo_spend_cache = set()
         self.flush_thread = None
         self.balance_unspent ={}
-        self.balance_spent = {}
         self.symbol = symbol
-        try:
-            self.utxo_db_cache = leveldb.LevelDB('./utxo_db' + self.symbol)
-        except Exception, ex:
-            logging.error(ex)
-
-
-    def get_utxo(self, utxo_id):
-        if self.utxo_cache.has_key(utxo_id):
-            return self.utxo_cache[utxo_id]
-        if self.utxo_flush_cache.has_key(utxo_id):
-            return self.utxo_flush_cache[utxo_id]
-        try:
-            db_data = self.utxo_db_cache.Get(utxo_id)
-        except KeyError:
-            db_data = None
-        if db_data is not None:
-            return json.loads(db_data)
-        else:
-            return None
-
-
-    def spend_utxo(self, utxo_id):
-        logging.debug("Spend utxo: " + utxo_id)
-        self.utxo_spend_cache.add(utxo_id)
-        data = self.get_utxo(utxo_id)
-        if data is None:
-            return
-        addr = data.get("address")
-        if self.balance_spent.has_key(addr) :
-            self.balance_spent[addr].append(utxo_id)
-        else:
-            self.balance_spent[addr]=[utxo_id]
-
-
-    def add_utxo(self, utxo_id, data):
-        logging.debug("Add utxo: " + utxo_id)
-        self.utxo_cache[utxo_id] = data
-        addr = data.get("address")
-        if self.balance_unspent.has_key(addr):
-            self.balance_unspent[addr].append(utxo_id)
-        else:
-            self.balance_unspent[addr] = [utxo_id]
-
 
     def flush_to_db(self, db):
         blocks = self.block_cache
-        raw_trasaction = self.raw_transaction_cache
         withdraw_transaction = self.withdraw_transaction_cache
         deposit_transaction = self.deposit_transaction_cache
-        self.utxo_flush_cache = self.utxo_cache
         balance_unspent = self.balance_unspent
-        balance_spent = self.balance_spent
         if self.flush_thread is not None:
             self.flush_thread.join()
             self.flush_thread = None
         self.flush_thread = threading.Thread(target=CacheManager.flush_process,
                                         args=(self.symbol,db, [
                                                   db.b_block,
-                                                  db.raw_transaction_db,
                                                   db.b_deposit_transaction,
                                                   db.b_withdraw_transaction
                                               ],
                                               [
                                                   blocks,
-                                                  raw_trasaction,
                                                   deposit_transaction,
                                                   withdraw_transaction
                                               ],
-                                              self.utxo_flush_cache,
-                                              self.utxo_spend_cache,
-                                              self.utxo_db_cache,
                                               self.sync_key,
-                                              balance_unspent,
-                                              balance_spent))
+                                              balance_unspent))
         self.flush_thread.start()
         self.block_cache = []
-        self.raw_transaction_cache = []
         self.withdraw_transaction_cache = []
         self.deposit_transaction_cache = []
-        self.utxo_cache = {}
-        self.utxo_spend_cache = set()
         self.balance_unspent = {}
-        self.balance_spent = {}
 
 
     @staticmethod
-    def flush_process(symbol,db, tables, data, utxo_cache, utxo_spend_cache, utxo_db, sync_key,balance_unspent,balance_spent):
+    def flush_process(symbol,db, tables, data, sync_key,balance_unspent):
         for i, t in enumerate(tables):
             if len(data[i]) > 0:
                 logging.debug(data[i][0])
@@ -144,16 +83,6 @@ class CacheManager(object):
         block_num = data[0][len(data[0])-1]["blockNumber"]
         logging.info(sync_key + ": " + str(block_num))
 
-        #Flush utxo to leveldb
-        batch = leveldb.WriteBatch()
-        for key in utxo_spend_cache:
-            batch.Delete(key)
-        for key,value in utxo_cache.items():
-            batch.Put(key, json.dumps(value))
-        try:
-            utxo_db.Write(batch, sync=True)
-        except Exception,ex:
-            print "flush db", ex
         bulk_unspent = db.b_balance_unspent.initialize_ordered_bulk_op()
         bulk_spent = db.b_balance_spent.initialize_ordered_bulk_op();
         #Flush balance to mongodb.
@@ -173,22 +102,6 @@ class CacheManager(object):
         if nCount != 0:
             bulk_unspent.execute()
             nCount=0
-        for addr,value in balance_spent.items() :
-            record = db.b_balance_spent.find_one({"chainId": symbol.lower(), "address": addr},
-                                                   {"_id": 0, "chainId": 1})
-            if record is None:
-                bulk_spent.insert({'chainId': symbol.lower(), 'address': addr, "trxdata": value})
-            else:
-                bulk_spent.find({"chainId": symbol.lower(), "address": addr}).update_one(
-                    {"$addToSet": {"trxdata": {"$each": value}}})
-            nCount += 1
-            if nCount == 30:
-                bulk_spent.execute()
-                bulk_spent = db.b_balance_spent.initialize_ordered_bulk_op()
-                nCount = 0
-        if nCount != 0:
-            bulk_spent.execute()
-            nCount = 0
         #Update sync block number finally.
         db.b_config.update({"key": sync_key}, {
             "$set": {"key": sync_key, "value": str(block_num)}})
@@ -385,7 +298,6 @@ class BTCCoinTxCollector(CoinTxCollector):
         vout = base_trx_data["vout"]
         trx_data["vout"] = []
         trx_data["vin"] = []
-        # is_coinbase_trx = self.is_coinbase_transaction(base_trx_data)
         out_set = {}
         in_set = {}
         multisig_in_addr = ""
@@ -415,30 +327,20 @@ class BTCCoinTxCollector(CoinTxCollector):
                 continue
             if not trx_in.has_key('vout'):
                 logging.error(trx_in)
-            utxo_id = self._cal_UTXO_prefix(trx_in['txid'], trx_in['vout'])
-            in_trx = self.cache.get_utxo(utxo_id)
-            self.cache.spend_utxo(utxo_id)
-            if in_trx is None:
-                logging.info(
-                    "Fail to get vin transaction [%s:%d] of [%s]" % (trx_in["txid"], trx_in['vout'], trx_data["trxid"]))
-                if self.config.ASSET_SYMBOL == "HC":
-                    ret1 = self.wallet_api.http_request("getrawtransaction", [trx_in['txid'], 2])
-                else:
-                    ret1 = self.wallet_api.http_request("getrawtransaction", [trx_in['txid'], True])
-                if not ret1.has_key('result'):
-                    logging.error("Fail to get vin transaction [%s:%d] of [%s]" % (trx_in["txid"], trx_in['vout'], trx_data["trxid"]))
-                    exit(0)
-                addr =  self._get_vout_address(ret1.get("result").get("vout")[int(trx_in['vout'])])
-                if addr == "" :
-                    continue
-                if self.cache.balance_spent.has_key(addr):
-                    self.cache.balance_spent[addr].append(utxo_id)
-                else:
-                    self.cache.balance_spent[addr] = [utxo_id]
-                for t in ret1['result']['vout']:
-                    if t['n'] == trx_in['vout']:
-                        in_trx = {'address': self._get_vout_address(t), 'value': t['value']}
-                        break
+            if self.config.ASSET_SYMBOL == "HC":
+                ret1 = self.wallet_api.http_request("getrawtransaction", [trx_in['txid'], 2])
+            else:
+                ret1 = self.wallet_api.http_request("getrawtransaction", [trx_in['txid'], True])
+            if not ret1.has_key('result'):
+                logging.error("Fail to get vin transaction [%s:%d] of [%s]" % (trx_in["txid"], trx_in['vout'], trx_data["trxid"]))
+                exit(0)
+            addr =  self._get_vout_address(ret1.get("result").get("vout")[int(trx_in['vout'])])
+            if addr == "" :
+                continue
+            for t in ret1['result']['vout']:
+                if t['n'] == trx_in['vout']:
+                    in_trx = {'address': self._get_vout_address(t), 'value': t['value']}
+                    break
 
             in_address = in_trx["address"]
             if (in_set.has_key(in_address)):
@@ -453,16 +355,6 @@ class BTCCoinTxCollector(CoinTxCollector):
                     if multisig_in_addr != in_address:
                         is_valid_tx = False
         for trx_out in vout:
-            # Update UBXO cache
-            if trx_out["scriptPubKey"]["type"] == "nonstandard":
-                self.cache.add_utxo(
-                    self._cal_UTXO_prefix(base_trx_data["txid"], trx_out["n"]),
-                    {"address": "", "value": 0 if (not trx_out.has_key("value")) else trx_out["value"]})
-            elif trx_out["scriptPubKey"].has_key("addresses"):
-                address = self._get_vout_address(trx_out)
-                self.cache.add_utxo(
-                    self._cal_UTXO_prefix(base_trx_data["txid"], trx_out["n"]),
-                    {"address": address, "value": 0 if (not trx_out.has_key("value")) else trx_out["value"]})
             # Check vout
             if trx_out["scriptPubKey"].has_key("addresses"):
                 out_address = trx_out["scriptPubKey"]["addresses"][0]
@@ -528,12 +420,12 @@ class BTCCoinTxCollector(CoinTxCollector):
                 self.cache.withdraw_transaction_cache.append(withdraw_data)
 
         # logging.info("add raw transaction")
-        self.cache.raw_transaction_cache.append(trx_data)
+        #self.cache.raw_transaction_cache.append(trx_data)
         return trx_data
 
 
-    def _cal_UTXO_prefix(self, txid, vout):
-        return self.config.ASSET_SYMBOL + txid + "I" + str(vout)
+    #def _cal_UTXO_prefix(self, txid, vout):
+        #return self.config.ASSET_SYMBOL + txid + "I" + str(vout)
 
 
     def _get_vout_address(self, vout_data):
