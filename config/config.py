@@ -28,7 +28,7 @@ class DevelopmentConfig(Config):
     MAIL_USE_TLS = True
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
-    MONGO_HOST = 'chaindb'
+    MONGO_HOST = 'localhost'
     MONGO_PORT = 27017
     MONGO_NAME = 'chaindb'
     MONGO_USER = 'chaindb_user'
