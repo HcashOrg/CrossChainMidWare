@@ -125,11 +125,19 @@ class sim_btc_utils:
     def sim_btc_get_trx_out(self,addr):
         result = []
         resp = self.collect_http_request("Service.ListUnSpent", [addr])
-        if resp["result"] != None:
+        if resp.has_key("result") and resp["result"] != None:
             trx_unspent = resp["result"]
             for tx in trx_unspent:
                 result.append({"amount":tx["value"],"txid":tx["txid"],"vout":tx["vout"],"scriptPubKey":tx["scriptPubKey"]})
         return result
+
+
+    def sim_btc_get_balance(self,addr):
+        resp = self.collect_http_request("Service.GetBalance", [addr])
+        if resp.has_key("result") and resp["result"] != None:
+            return str(resp["result"])
+        else:
+            return "0"
 
 
     def sim_btc_create_transaction(self, from_addr, dest_info):
@@ -206,9 +214,11 @@ class sim_btc_utils:
     def sim_btc_backup_wallet(self):
         self.http_request("backupwallet", ["/var/backup_keystore/"+self.name+"_wallet.dat"])
 
+'''
     def sim_btc_get_withdraw_balance(self):
         rep = self.http_request("getbalance", [self.name+"_withdraw_test"])
         balance = 0.0
         if rep["result"] != None:
             balance = rep["result"]
         return balance
+'''

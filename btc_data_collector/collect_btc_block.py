@@ -43,14 +43,12 @@ class CacheManager(object):
         self.withdraw_transaction_cache = []
         self.deposit_transaction_cache = []
         self.flush_thread = None
-        self.balance_unspent ={}
         self.symbol = symbol
 
     def flush_to_db(self, db):
         blocks = self.block_cache
         withdraw_transaction = self.withdraw_transaction_cache
         deposit_transaction = self.deposit_transaction_cache
-        balance_unspent = self.balance_unspent
         if self.flush_thread is not None:
             self.flush_thread.join()
             self.flush_thread = None
@@ -65,17 +63,15 @@ class CacheManager(object):
                                                   deposit_transaction,
                                                   withdraw_transaction
                                               ],
-                                              self.sync_key,
-                                              balance_unspent))
+                                              self.sync_key))
         self.flush_thread.start()
         self.block_cache = []
         self.withdraw_transaction_cache = []
         self.deposit_transaction_cache = []
-        self.balance_unspent = {}
 
 
     @staticmethod
-    def flush_process(symbol,db, tables, data, sync_key,balance_unspent):
+    def flush_process(symbol,db, tables, data, sync_key):
         for i, t in enumerate(tables):
             if len(data[i]) > 0:
                 logging.debug(data[i][0])
@@ -83,26 +79,7 @@ class CacheManager(object):
         block_num = data[0][len(data[0])-1]["blockNumber"]
         logging.info(sync_key + ": " + str(block_num))
 
-        bulk_unspent = db.b_balance_unspent.initialize_ordered_bulk_op()
-        bulk_spent = db.b_balance_spent.initialize_ordered_bulk_op();
-        #Flush balance to mongodb.
-        nCount=0
-        for addr,value in balance_unspent.items() :
-            record = db.b_balance_unspent.find_one({"chainId": symbol.lower(), "address": addr},{"_id":0,"chainId": 1})
-            if record is None:
-                bulk_unspent.insert({'chainId': symbol.lower(), 'address': addr, "trxdata": value})
-            else:
-                bulk_unspent.find({"chainId": symbol.lower(), "address": addr}).update_one(
-                                                         {"$addToSet": {"trxdata": {"$each": value}}})
-            nCount+=1
-            if nCount == 30 :
-                bulk_unspent.execute()
-                bulk_unspent = db.b_balance_unspent.initialize_ordered_bulk_op()
-                nCount = 0
-        if nCount != 0:
-            bulk_unspent.execute()
-            nCount=0
-        #Update sync block number finally.
+       #Update sync block number finally.
         db.b_config.update({"key": sync_key}, {
             "$set": {"key": sync_key, "value": str(block_num)}})
 

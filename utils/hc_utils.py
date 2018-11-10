@@ -188,13 +188,27 @@ class hc_utils:
         if resp["result"] != None:
             trx_hex = resp["result"]
         return trx_hex
+
+
+    #yes
+    def hc_get_balance(self, addr):
+        resp = self.collect_http_request("Service.GetBalance", [addr])
+        if resp.has_key("result") and resp["result"] != None:
+            return str(resp["result"])
+        else:
+            return "0"
+
+
+'''
     #no
     def hc_backup_wallet(self):
         self.http_request("backupwallet", ["/var/backup_keystore/"+self.name+"_wallet.dat"])
-    #yes
+
+
     def hc_get_withdraw_balance(self):
         rep = self.http_request("getbalance", ["default"])
         balance = 0.0
         if rep["result"] != None:
             balance = rep["result"]
         return balance
+'''
