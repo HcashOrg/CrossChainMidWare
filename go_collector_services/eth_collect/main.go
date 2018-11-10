@@ -68,7 +68,7 @@ func collect_block(height_chan chan int,blockdata_chan chan simplejson.Json){
 		}
 		param = append(param,"0x"+strconv.FormatInt(int64(once_height), 16))
 		param = append(param,"true")
-		blockdata := link_client.LinkHttpFunc("eth_getBlockByNumber",&param )
+		blockdata := link_client.SafeLinkHttpFunc("eth_getBlockByNumber",&param )
 		if once_height%1000 ==0{
 			fmt.Println("height",once_height,"chan size",len(blockdata_chan))
 		}
@@ -174,18 +174,18 @@ func handle_block(blockdata_chan chan simplejson.Json,interval int64){
 			//trx_object := &pro.TrxObject{}
 			trx_map_obj["id"] = txid
 			trx_map_obj["blockNumber"] = tmp_height
-			trx_map_obj["to"] = trx_simple_data["to"]
-
+			to_str,exist := trx_simple_data["to"]
+			trx_map_obj["to"] = to_str
 			//logs
 
 			//from
 			trx_map_obj["from"] = trx_simple_data["from"]
-			if trx_simple_data["input"].(string) == "0x"{
+			if trx_simple_data["input"].(string) == "0x" && exist {
 				_,exist := WatchAddressList[trx_simple_data["to"].(string)]
 				if exist{
 					param := make([]interface{},0,20)
 					param = append(param,txid)
-					trxReceiptData,_ := link_client.LinkHttpFunc("eth_getTransactionReceipt",&param ).Get("result").Map()
+					trxReceiptData,_ := link_client.SafeLinkHttpFunc("eth_getTransactionReceipt",&param ).Get("result").Map()
 					logs_data :=trxReceiptData["logs"]
 					if len(logs_data.([]interface{}))==0{
 						continue
@@ -200,7 +200,7 @@ func handle_block(blockdata_chan chan simplejson.Json,interval int64){
 				if true{
 					param := make([]interface{},0,20)
 					param = append(param,txid)
-					trxReceiptData,_ := link_client.LinkHttpFunc("eth_getTransactionReceipt",&param ).Get("result").Map()
+					trxReceiptData,_ := link_client.SafeLinkHttpFunc("eth_getTransactionReceipt",&param ).Get("result").Map()
 					logs_data :=trxReceiptData["logs"]
 					for _,data := range logs_data.([]interface{}){
 						var log_json_data map[string]interface{}
@@ -327,7 +327,7 @@ func main(){
 	}
 	//vin := &pro.TrxObject_VIN{}
 	param := make([]interface{},0)
-	json_data := link_client.LinkHttpFunc("eth_blockNumber",&param )
+	json_data := link_client.SafeLinkHttpFunc("eth_blockNumber",&param )
 	fmt.Println("json_data",json_data)
 	res_count,_ := json_data.Get("result").String()
 	fmt.Println(height)
@@ -383,7 +383,7 @@ func main(){
 		for ;!is_done;{
 
 			param := make([]interface{},0)
-			json_data := link_client.LinkHttpFunc("eth_blockNumber",&param )
+			json_data := link_client.SafeLinkHttpFunc("eth_blockNumber",&param )
 			res_count,_ := json_data.Get("result").String()
 			count64, _ := strconv.ParseInt(res_count[2:], 16, 32)
 			count := int(count64) - config.RpcServerConfig.SafeBlock[ChainType]
