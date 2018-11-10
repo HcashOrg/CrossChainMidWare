@@ -10,6 +10,7 @@ import (
 	"github.com/bitly/go-simplejson"
 	"reflect"
 	"strconv"
+	"time"
 )
 
 type LinkClient struct{
@@ -81,6 +82,34 @@ func turnInterface(ina *[]interface{})string{
 	message = message + "]"
 	return message
 }
+
+
+func (client *LinkClient)SafeLinkHttpFunc(function string,params *[]interface{})(*simplejson.Json) {
+	sleepInterval :=[]int{5,10,20,30,40,60,120,240,480,960,1920,3840}
+	index :=0
+	for;;{
+		return_value:=client.LinkHttpFunc(function,params)
+		if return_value != nil{
+			_,exist:=return_value.CheckGet("result")
+			if exist{
+				return return_value
+			}
+		}
+		{
+
+			if index>12{
+				fmt.Println("http request is error,please wait to retry,current sleep time is ",time.Second*time.Duration(sleepInterval[11]),time.Now())
+				time.Sleep(time.Second*time.Duration(sleepInterval[11]))
+			}else{
+				fmt.Println("http request is error,please wait to retry,current sleep time is ",time.Second*time.Duration(sleepInterval[index]),time.Now())
+				time.Sleep(time.Second*time.Duration(sleepInterval[index]))
+			}
+		}
+		index++
+	}
+}
+
+
 func (client * LinkClient)LinkHttpFunc(function string,params *[]interface{})(*simplejson.Json) {
 	strParams := turnInterface(params)
 	transport := http.Transport{
