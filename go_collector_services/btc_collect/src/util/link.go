@@ -147,6 +147,11 @@ func (client * LinkClient)LinkHttpFunc(function string,params *[]interface{},ist
 		fmt.Println(err.Error())
 		return nil
 	}
+	if strings.Contains(string(body),"504 Gateway Time-out"){
+		fmt.Println("4")
+		fmt.Println(string(body))
+		return nil
+	}
 	js,err:= simplejson.NewJson(body)
 	if err != nil{
 		fmt.Println("3")
