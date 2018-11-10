@@ -58,6 +58,7 @@ def zchain_Trans_sign(chainId,addr, trx_hex, redeemScript):
         'chainId': chainId,
         'data': signed_trx
     }
+
 @jsonrpc.method('Zchain.Addr.GetAddErc(chainId=str)')
 def zchain_Addr_GetAddErc(chainId,addr,precison):
     logger.info('Zchain.Addr.GetAddErc')
@@ -189,6 +190,7 @@ def zchain_trans_getEthTrxCount(chainId, addr, indexFormat):
         return error_utils.error_response("Cannot eth trx count.")
     #print result
     return result
+
 @jsonrpc.method('Zchain.Trans.createTrx(chainId=str, from_addr=str,dest_info=dict)')
 def zchain_trans_createTrx(chainId, from_addr,dest_info):
     logger.info('Zchain.Trans.createTrx')
@@ -375,6 +377,7 @@ def zchain_multisig_create(chainId, addrs, amount):
         'address': address,
         'redeemScript': redeemScript
     }
+
 @jsonrpc.method('Zchain.Address.validate(chainId=str, addr=str)')
 def zchain_address_validate(chainId,addr):
     chainId = chainId.lower()
@@ -470,11 +473,13 @@ def zchain_transaction_guardcall_history(chainId,account ,blockNum, limit):
         'blockNum': blockNum,
         'data': trxs
     }
+
 @jsonrpc.method('Zchain.Trans.getContractAddress(trxId=str)')
 def zchain_trans_get_contract_address(trxId):
     logger.info('Zchain.Trans.getContractAddress')
     return eth_utils.get_contract_address(trxId)
 
+#TODO, call btc_collect service
 @jsonrpc.method('Zchain.Transaction.Withdraw.History(chainId=str, account=str, blockNum=int, limit=int)')
 def zchain_transaction_withdraw_history(chainId,account ,blockNum, limit):
     chainId = chainId.lower()
@@ -501,7 +506,7 @@ def zchain_transaction_withdraw_history(chainId,account ,blockNum, limit):
         'data': trxs
     }
 
-
+#TODO, call btc_collect service
 @jsonrpc.method('Zchain.Transaction.Deposit.History(chainId=str, account=str, blockNum=int, limit=int)')
 def zchain_transaction_deposit_history(chainId,account ,blockNum, limit):
     chainId = chainId.lower()
@@ -555,6 +560,7 @@ def zchain_configuration_set(chainId, key, value):
 
 
 # TODO, 备份私钥功能暂时注释，正式上线要加回
+'''
 @jsonrpc.method('Zchain.Address.Create(chainId=String)')
 def zchain_address_create(chainId):
     chainId = chainId.lower()
@@ -583,9 +589,11 @@ def zchain_address_create(chainId):
         return {'chainId': chainId, 'address': address}
     else:
         return {'chainId': chainId, 'error': '创建地址失败'}
+'''
 
 
 
+'''
 @jsonrpc.method('Zchain.Withdraw.GetInfo(chainId=str)')
 def zchain_withdraw_getinfo(chainId):
     """
@@ -641,21 +649,16 @@ def zchain_withdraw_getinfo(chainId):
         'address': address,
         'balance': balance
     }
-
+'''
 
 @jsonrpc.method('Zchain.Address.GetBalance(chainId=str, addr=str)')
 def zchain_address_get_balance(chainId, addr):
     logger.info('Zchain.Address.GetBalance')
     ercchainId = chainId
     chainId = chainId.lower()
+    balance = "0"
     if (chainId == 'eth'):
-        result = eth_utils.eth_get_address_balance(addr, chainId)
-        #print result
-        return {
-            'chainId': chainId,
-            'address': addr,
-            'balance': result
-        }
+        balance = eth_utils.eth_get_address_balance(addr, chainId)
     elif ('erc' in chainId):
        #print ercchainId
        asser = None
@@ -669,52 +672,12 @@ def zchain_address_get_balance(chainId, addr):
            'addr':addr,
            'contract_addr':asset['address']
        }
-       result = eth_utils.eth_get_address_balance(temp,chainId)
-       #print result
-       return {
-           'chainId': chainId,
-           'address': addr,
-           'balance': result
-       }
-    record_unspent = db.b_balance_unspent.find_one({'chainId': chainId, 'address': addr})
-    trx_unspent=[]
-    trx_spent = []
-    balance = 0.0
-    record_spent = None
-    if record_unspent is not None:
-        trx_unspent = record_unspent.get("trxdata")
-        record_spent = db.b_balance_spent.find_one({'chainId': chainId, 'address': addr})
-        if record_spent is not None :
-            trx_spent = record_spent.get("trxdata")
-
+       balance = eth_utils.eth_get_address_balance(temp,chainId)
     else:
-        return {
-            'chainId': chainId,
-            'address': addr,
-            'balance': str(0)
-        }
-    unspent = []
-    for trx in trx_unspent :
-        if trx  not in trx_spent:
-            unspent.append(trx)
-    for id in unspent:
-        pos1 = len(chainId)
-        id = id[pos1:]
-        pos2 = id.find('I')
-        index = id[pos2 + 1:]
-        id = id[0:pos2]
-        result = ""
-        if sim_btc_plugin.has_key(chainId):
-            result = sim_btc_plugin[chainId].sim_btc_get_transaction(id)
-        elif chainId == "hc":
-            result = hc_plugin.hc_get_transaction(id)
-        if result is "":
-            continue
-        vout = round(float(result.get("vout")[int(index)].get("value")), 8)
-        balance = round(vout + balance, 8)
+        balance = sim_btc_plugin[chainId].sim_btc_get_balance(addr)
 
     return {
         'chainId': chainId,
         'address': addr,
-        'balance': str(balance)
+        'balance': balance
     }
