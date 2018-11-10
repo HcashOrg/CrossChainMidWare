@@ -180,7 +180,7 @@ func handle_block(blockdata_chan chan simplejson.Json,interval int64){
 
 			//from
 			trx_map_obj["from"] = trx_simple_data["from"]
-			if trx_simple_data["input"].(string) == "0x" && exist {
+			if trx_simple_data["input"].(string) == "0x" && exist && trx_simple_data["to"]!=nil {
 				_,exist := WatchAddressList[trx_simple_data["to"].(string)]
 				if exist{
 					param := make([]interface{},0,20)
