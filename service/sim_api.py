@@ -657,9 +657,9 @@ def zchain_address_get_balance(chainId, addr):
     ercchainId = chainId
     chainId = chainId.lower()
     balance = "0"
-    if (chainId == 'eth'):
+    if chainId == 'eth':
         balance = eth_utils.eth_get_address_balance(addr, chainId)
-    elif ('erc' in chainId):
+    elif 'erc' in chainId:
        #print ercchainId
        asser = None
        if erc_chainId_map.has_key(ercchainId):
@@ -673,6 +673,8 @@ def zchain_address_get_balance(chainId, addr):
            'contract_addr':asset['address']
        }
        balance = eth_utils.eth_get_address_balance(temp,chainId)
+    elif chainId == "hc":
+        balance = hc_plugin.hc_get_balance(addr)
     else:
         balance = sim_btc_plugin[chainId].sim_btc_get_balance(addr)
 
