@@ -33,7 +33,7 @@ from eth_utils import eth_request_from_db
 import time
 from block import BlockInfo
 from datetime import datetime
-from config.erc_conf import erc_map
+from erc_conf import erc_map
 import numpy as np
 np.set_printoptions(suppress=True)
 import math
