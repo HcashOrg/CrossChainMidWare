@@ -36,8 +36,8 @@ var(
 	session *sql.DB
 
 )
-var collect_threads = 6
-var handle_threads = runtime.NumCPU()+4
+var collect_threads = 3
+var handle_threads = runtime.NumCPU()+1
 var ChainType = "ETH"
 var WatchAddressList map[string]string
 
