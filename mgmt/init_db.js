@@ -66,7 +66,7 @@ if (db.auth("dbAdmin", "admin12#$%") != 1) {
 
     db.b_config.insert({
         'key': 'syncblocknum',
-        'value': '4000000'
+        'value': '6000000'
     });
     db.b_config.insert({
         'key': 'safeblock',
@@ -78,11 +78,11 @@ if (db.auth("dbAdmin", "admin12#$%") != 1) {
     });
     db.b_config.insert({
         'key': 'btcsyncblocknum',
-        'value': '0'
+        'value': '549480'
     });
     db.b_config.insert({
         'key': 'btcsafeblock',
-        'value': '2'
+        'value': '3'
     });
     db.b_config.insert({
         'key': 'btcsyncstate',
@@ -90,7 +90,7 @@ if (db.auth("dbAdmin", "admin12#$%") != 1) {
     });
     db.b_config.insert({
         'key': 'ltcsyncblocknum',
-        'value': '0'
+        'value': '1524352'
     });
     db.b_config.insert({
         'key': 'ltcsafeblock',
@@ -114,7 +114,7 @@ if (db.auth("dbAdmin", "admin12#$%") != 1) {
     });
      db.b_config.insert({
         'key': 'hcsyncblocknum',
-        'value': '0'
+        'value': '50000'
     });
     db.b_config.insert({
         'key': 'hcsafeblock',

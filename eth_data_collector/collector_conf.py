@@ -20,8 +20,8 @@ class DevelopmentConfig():
     MONGO_USER = 'chaindb_user'
     MONGO_PASS = 'yqr.1010'
     ETH_SECRET_KEY = 'Q!wert123@'
-    ETH_URL = 'eth_wallet'
-    ETH_PORT = 8545
+    ETH_URL = '127.0.0.1'
+    ETH_PORT = 5544
     ETH_Minimum = 0.5
     BTC_HOST = 'btc_wallet'
     BTC_PORT = 60011
@@ -39,7 +39,7 @@ CONNECT_TIMEOUT = 50
 RPC_COROUTINE_MAX = 50
 
 # SYNC configure
-SYNC_BLOCK_PER_ROUND = 10000
+SYNC_BLOCK_PER_ROUND = 1000
 
 # HTTP configure
 REFRESH_STAT_POST_URL = "http://52.80.29.33:8000/api"

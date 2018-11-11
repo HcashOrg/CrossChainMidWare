@@ -13,7 +13,7 @@ class WalletApi:
 
     def http_request(self, method, args):
         if self.name == 'HC':
-            url = "https://%s:%s" % (self.config["host"], self.config["port"])
+            url = "http://%s:%s" % (self.config["host"], self.config["port"])
         else:
             url = "http://%s:%s" % (self.config["host"], self.config["port"])
         user = 'a'
@@ -27,8 +27,8 @@ class WalletApi:
             'cache-control': "no-cache",
         }
         if self.name == "HC":
-            requests.packages.urllib3.disable_warnings()
-            response = requests.request("POST", url, data=payload, headers=headers, verify=False)
+            #requests.packages.urllib3.disable_warnings()
+            response = requests.request("POST", url, data=payload, headers=headers)
         else:
             response = requests.request("POST", url, data=payload, headers=headers)
         rep = response.json()

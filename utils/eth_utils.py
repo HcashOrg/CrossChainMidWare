@@ -164,6 +164,24 @@ def eth_validate_address(addr):
                 break
         i = i+1
     return ret
+def TurnAmountFromEth(source,precision):
+    ret = ''
+    if len(source) <= int(precision):
+        ret += '0.'
+        temp_precision = '0' * (precision - len(source))
+        ret += temp_precision
+        amount = source.rstrip('0')
+        if amount == '':
+            amount = source
+        ret += amount
+    else:
+        ret += source[0: (len(source) - precision)]
+        amountFloat = source[len(source) - precision:]
+        amount = amountFloat.rstrip('0')
+        if amount != '':
+            ret += '.'
+        ret += amount
+    return ret
 def eth_get_address_balance(address,chainId):
     if chainId == "eth":
         real_precision = 18
@@ -178,7 +196,8 @@ def eth_get_address_balance(address,chainId):
     if json_data.get("result") is None:
         return '0'
     else:
-        return str(float(int(json_data.get("result"), 16)) / pow(10, int(real_precision)))
+        return TurnAmountFromEth(str(int(json_data.get("result"), 16)),real_precision)
+        #return str(float(int(json_data.get("result"), 16)) / pow(10, int(real_precision)))
 def eth_get_trx_count(address,indexFormat):
     ret = eth_request("Service.GetTransactionCount",[[address,indexFormat]])
     json_data = json.loads(ret)
