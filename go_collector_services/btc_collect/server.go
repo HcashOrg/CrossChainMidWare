@@ -66,8 +66,6 @@ func (s *Service) GetAddressHistory(r *http.Request, args *string, reply *[]stri
 func (s *Service) GetBlockHeight(r *http.Request, args *string, reply *uint64) error {
 
 	tmp_height,err:=config_db.Get([]byte("height"),nil)
-	fmt.Println(string(tmp_height))
-	fmt.Println(err)
 	if err != nil {
 		tmp_height = []byte("0")
 	}
