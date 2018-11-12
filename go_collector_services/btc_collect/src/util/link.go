@@ -89,7 +89,7 @@ func (client *LinkClient)SafeLinkHttpFunc(function string,params *[]interface{},
 		}
 		{
 
-			if index>12{
+			if index>=12{
 				fmt.Println("http request is error,please wait to retry,current sleep time is ",time.Second*time.Duration(sleepInterval[11]),time.Now())
 				time.Sleep(time.Second*time.Duration(sleepInterval[11]))
 			}else{
