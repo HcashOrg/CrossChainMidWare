@@ -26,10 +26,16 @@ class WalletApi:
             'authorization': "Basic %s" % (basestr),
             'cache-control': "no-cache",
         }
-        if self.name == "HC":
-            #requests.packages.urllib3.disable_warnings()
-            response = requests.request("POST", url, data=payload, headers=headers)
-        else:
-            response = requests.request("POST", url, data=payload, headers=headers)
-        rep = response.json()
-        return rep
+        while True:
+            try:
+                if self.name == "HC":
+                    #requests.packages.urllib3.disable_warnings()
+                    response = requests.request("POST", url, data=payload, headers=headers)
+                else:
+                    response = requests.request("POST", url, data=payload, headers=headers)
+                rep = response.json()
+                if "result" in rep:
+                    return rep
+                print response.text
+            except Exception,ex:
+                print ex
