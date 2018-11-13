@@ -28,6 +28,7 @@ import (
 	"bytes"
 
 	"github.com/syndtr/goleveldb/leveldb"
+	"github.com/syndtr/goleveldb/leveldb/opt"
 	"flag"
 )
 
@@ -474,9 +475,11 @@ func flush_db(){
 	tmp_batch.Reset()
 	fs_update()
 	fmt.Println(strconv.Itoa(last_height))
-	config_db.Put([]byte("height"), []byte(strconv.Itoa(last_height)),nil)
-	config_db.Put([]byte("trx_counts"), []byte(strconv.Itoa(int(trx_counts))),nil)
-	config_db.Put([]byte("flush_count"), []byte(strconv.Itoa(flush_count)),nil)
+	wo :=opt.WriteOptions{}
+	wo.Sync = true
+	config_db.Put([]byte("height"), []byte(strconv.Itoa(last_height)),&wo)
+	config_db.Put([]byte("trx_counts"), []byte(strconv.Itoa(int(trx_counts))),&wo)
+	config_db.Put([]byte("flush_count"), []byte(strconv.Itoa(flush_count)),&wo)
 
 	fmt.Println("flush db add utxo count",len(utxo_cache)," spent utxo count",len(utxo_spent_cache)," address_trx count: ",len(write_address_trx_data)," cost time:",time.Now().Sub(bak_time).Seconds())
 	utxo_cache = make(map[string]interface{})
@@ -774,7 +777,9 @@ func handle_block(blockdata_chan chan simplejson.Json,interval int){
 			//write_trx_data = append(write_trx_data,trx_map_obj)
 			trx_counts ++
 		}
+		if last_height<tmp_height{
 		last_height = tmp_height
+		}
 		if int32(interval) == 1{
 			flush_db()
 		} else if change_weight>int32(interval){
@@ -880,8 +885,17 @@ func main(){
 	//vin := &pro.TrxObject_VIN{}
 	param := make([]interface{},0)
 	json_data := link_client.SafeLinkHttpFunc(config.RpcServerConfig.GetInfoFunctionName[ChainType],&param ,config.RpcServerConfig.IsTls[ChainType])
+	var count int
+	for ;;{
 	count,_ := json_data.Get("result").Get("blocks").Int()
 	count = count - config.RpcServerConfig.SafeBlock[ChainType]
+		if count >= height{
+			break
+		}
+		fmt.Println("invalid chain height",count)
+	}
+
+
 	fmt.Println("chain height",count)
 	global_start_height  = height
 	blockdata_chan := make(chan simplejson.Json,40)
@@ -928,7 +942,7 @@ func main(){
 			count,_ := json_data.Get("result").Get("blocks").Int()
 			count = count - config.RpcServerConfig.SafeBlock[ChainType]
 			if old_count <count{
-				fmt.Println("current height:",old_count,"target height",count)
+				fmt.Println("current height:",old_count,"target height",count,"time",time.Now())
 				for i:=old_count;i<count;i++{
 					height_chan <- i
 				}

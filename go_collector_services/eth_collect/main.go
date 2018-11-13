@@ -332,9 +332,18 @@ func main(){
 	res_count,_ := json_data.Get("result").String()
 	fmt.Println(height)
 	res_count = res_count[2:]
-	count, _ := strconv.ParseInt(res_count, 16, 32)
+	var count int64
+	for ;;{
+		count, _ = strconv.ParseInt(res_count, 16, 32)
 	count = count - int64(config.RpcServerConfig.SafeBlock[ChainType])
 	fmt.Println(count)
+		if count>=int64(height){
+			break
+		}
+
+	}
+
+
 
 	global_start_height  = height
 	blockdata_chan := make(chan simplejson.Json,40)
@@ -388,7 +397,7 @@ func main(){
 			count64, _ := strconv.ParseInt(res_count[2:], 16, 32)
 			count := int(count64) - config.RpcServerConfig.SafeBlock[ChainType]
 			if old_count <count{
-				fmt.Println("current height:",old_count,"target height",count)
+				fmt.Println("current height:",old_count,"target height",count,"time",time.Now())
 				for i:=old_count;i<count;i++{
 					height_chan <- i
 				}

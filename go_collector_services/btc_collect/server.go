@@ -186,7 +186,7 @@ func (s *Service) GetBalance(r *http.Request, args *string, reply *float64) erro
 
 	}
 
-	balance := 0.0
+	balance := float64(0.0)
 	for _,v := range list_unspent_datas{
 		utxo_obj:= pro.UTXOObject{}
 		err :=proto.Unmarshal([]byte(v),&utxo_obj)
