@@ -888,7 +888,7 @@ func main(){
 	var count int
 	for ;;{
 	json_data := link_client.SafeLinkHttpFunc(config.RpcServerConfig.GetInfoFunctionName[ChainType],&param ,config.RpcServerConfig.IsTls[ChainType])
-	count,_ := json_data.Get("result").Get("blocks").Int()
+	count,_ = json_data.Get("result").Get("blocks").Int()
 	count = count - config.RpcServerConfig.SafeBlock[ChainType]
 		if count >= height{
 			break
