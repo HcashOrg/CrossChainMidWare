@@ -474,6 +474,7 @@ def trx_store_eth(db_pool,base_trx):
                                                 "txid": trx_data["trxId"],
                                                 "from_account": trx_data["toAddress"],
                                                 "to_account": ("0x" + datas[1][24:]),
+                                                "call_contract":trx_data["toAddress"],
                                                 "prefixhash":datas[0],
                                                 "amount": str(TurnAmountFromEth(str(int(datas[2],16)),18)),
                                                   #  str("%.18lf"%(float(int(datas[2],16)) / pow(10, 18))).rstrip('0'),
@@ -547,7 +548,8 @@ def trx_store_erc(db_pool,erc_trxs):
                     "chainId": "",
                     "input": "0x",
                     "index": erc_trx["logIndex"],
-                    "fee": "0"
+                    "fee": "0",
+                    "call_contract":"0x"
                 }
                 source_trx = yield eth_request_from_db("Service.GetTrx",[erc_trx["txid"]])
                 if json.loads(source_trx).get("result") != None:
@@ -578,6 +580,7 @@ def trx_store_erc(db_pool,erc_trxs):
                                                     erc_out['chainId'] = erc_contract["chainId"].lower()
                                                     erc_out['asset_symbol'] = erc_contract["chainId"]
                                                     erc_out['amount'] = str(TurnAmountFromEth(str(int(erc_trx["value"], 16)),int(erc_contract["precison"])))
+                                                    erc_out['call_contract'] = source_trx["to"]
                                                         #str("%."+asset_account["precison"]+"lf"%(float(int(erc_trx["value"], 16)) / pow(10, int(erc_contract["precison"])))).rstrip('0')
                                                     eth_out_data = yield db_pool.b_withdraw_transaction.find_one(
                                                         {"txid": erc_out["txid"], "index": erc_out["index"], "asset_symbol": erc_out["asset_symbol"]})
