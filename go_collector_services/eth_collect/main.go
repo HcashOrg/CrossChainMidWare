@@ -327,16 +327,17 @@ func main(){
 	}
 	//vin := &pro.TrxObject_VIN{}
 	param := make([]interface{},0)
-	json_data := link_client.SafeLinkHttpFunc("eth_blockNumber",&param )
-	fmt.Println("json_data",json_data)
-	res_count,_ := json_data.Get("result").String()
-	fmt.Println(height)
-	res_count = res_count[2:]
+
 	var count int64
 	for ;;{
+        json_data := link_client.SafeLinkHttpFunc("eth_blockNumber",&param )
+        fmt.Println("json_data",json_data)
+        res_count,_ := json_data.Get("result").String()
+        fmt.Println(height)
+        res_count = res_count[2:]
 		count, _ = strconv.ParseInt(res_count, 16, 32)
-	count = count - int64(config.RpcServerConfig.SafeBlock[ChainType])
-	fmt.Println(count)
+        count = count - int64(config.RpcServerConfig.SafeBlock[ChainType])
+        fmt.Println(count)
 		if count>=int64(height){
 			break
 		}
