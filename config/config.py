@@ -54,7 +54,7 @@ class DevelopmentConfig(Config):
     HC_PORT = 19021
     HC_COLLECT_HOST = "localhost"
     HC_COLLECT_PORT = 5447
-    HC_FEE = 0.001
+    HC_FEE = 0.01
     # QUERY_SERVICE_HOST = "192.168.1.142"
     # QUERY_SERVICE_PORT = 5444
 
