@@ -8,7 +8,9 @@ from twisted.internet import reactor
 from twisted.web.client import Agent
 from twisted.web.http_headers import Headers
 from twisted.web.client import Agent, readBody
+from twisted.internet.defer import inlineCallbacks,returnValue
 from bytesprod import BytesProducer
+import time
 
 def eth_request(method, args):
     url = "http://%s:%s" % (ETH_URL, ETH_PORT)
@@ -55,12 +57,30 @@ def eth_request_from_db(method,args):
             # print('Response received')
             d = readBody(response)
             return d
+        def cbErrResponse(response):
+            return None
 
         d.addCallback(cbResponse)
+        d.addErrback(cbErrResponse)
     #response = requests.request("POST", url, data=data_to_send, headers=headers)
         return d
     except Exception,ex:
-        print ex
+        print "tttttt",ex
+
+@inlineCallbacks
+def safe_eth_request_from_db(method,args):
+    index = 0
+    sleepInterval =[5,10,20,40,60,120,240,480,960]
+    while True:
+        d = eth_request_from_db(method,args)
+        data = yield d
+        if data ==None:
+            print "request failed! will retry in ", sleepInterval[min(index,8)], "s"
+            time.sleep(sleepInterval[min(index,8)])
+            index = index + 1
+            continue
+        returnValue(data)
+
 
 
 if __name__ == '__main__':

@@ -27,7 +27,7 @@ from collector_conf import REFRESH_STAT_POST_URL, REFRESH_STAT_POST_DATA
 # from base import TRX_TYPE_REGISTER_CONTRACT, TRX_TYPE_UPGRADE_CONTRACT, TRX_TYPE_DESTROY_CONTRACT
 from base import GlobalVariable
 from eth_utils import eth_request
-from eth_utils import eth_request_from_db
+from eth_utils import safe_eth_request_from_db
 # from httprequest import do_post
 # import rpc_biz
 import time
@@ -163,7 +163,7 @@ def TurnAmountFromEth(source,precision):
     return ret
 @inlineCallbacks
 def get_latest_block_num():
-    ret =yield eth_request_from_db("Service.GetBlockHeight", [])
+    ret =yield safe_eth_request_from_db("Service.GetBlockHeight", [])
     json_data = json.loads(ret)
     #print json_data["result"]
     returnValue(json_data["result"])
@@ -201,14 +201,14 @@ def clear_last_garbage_data(db_pool):
 @inlineCallbacks
 def collect_block(block_num_fetch):
     try:
-        trx_ids_json = yield eth_request_from_db("Service.GetNormalHistory",[block_num_fetch])
+        trx_ids_json = yield safe_eth_request_from_db("Service.GetNormalHistory",[block_num_fetch])
         if json.loads(trx_ids_json).get("result") == None:
             trx_ids = []
 
         else:
             trx_ids = json.loads(trx_ids_json).get("result")
 
-        erc_ids_json = yield eth_request_from_db("Service.GetErc20History",[block_num_fetch])
+        erc_ids_json = yield safe_eth_request_from_db("Service.GetErc20History",[block_num_fetch])
         if json.loads(erc_ids_json).get("result") == None:
             erc_ids = []
         else:
@@ -432,7 +432,7 @@ def trx_store_eth(db_pool,base_trx):
             else:
                 yield db_pool.b_deposit_transaction.update({"txid": deposit["txid"]}, {"$set": deposit})
         elif (guard_account != None) and (trx_data["input"] != "0x"):
-            ret = yield eth_request_from_db("Service.GetTrxReceipt", [base_trx["hash"]])
+            ret = yield safe_eth_request_from_db("Service.GetTrxReceipt", [base_trx["hash"]])
             if json.loads(ret).get("result") != None:
                 #print 1
                 receipt = json.loads(ret).get("result")
@@ -551,13 +551,13 @@ def trx_store_erc(db_pool,erc_trxs):
                     "fee": "0",
                     "call_contract":"0x"
                 }
-                source_trx = yield eth_request_from_db("Service.GetTrx",[erc_trx["txid"]])
+                source_trx = yield safe_eth_request_from_db("Service.GetTrx",[erc_trx["txid"]])
                 if json.loads(source_trx).get("result") != None:
                     #TODO add transfer to witch erc
                     erc_out["input"] = json.loads(source_trx).get("result")["input"]
                     guard_call_account = yield db_pool.b_eths_address.find_one({"address":json.loads(source_trx).get("result")["to"]})
                     if (erc_out["input"] != '0x') and (guard_call_account != None):
-                        recipt_trx = yield eth_request_from_db("Service.GetTrxReceipt", [erc_trx["txid"]])
+                        recipt_trx = yield safe_eth_request_from_db("Service.GetTrxReceipt", [erc_trx["txid"]])
                         logs = json.loads(recipt_trx).get("result")["logs"]
                         for arg_json in logs:
                             if arg_json.get("topics") != None:
@@ -610,7 +610,7 @@ def trx_store(db_pool,base_trx,isErc):
         float((int(base_trx["gasUsed"], 16)) * (int(base_trx["gasPrice"], 16))) / pow(10, 18))
         trx_data["isErc20"] = False
     else:
-        erc_data = yield eth_request_from_db("Service.GetErc20Trx",base_trx["trxid"])
+        erc_data = yield safe_eth_request_from_db("Service.GetErc20Trx",base_trx["trxid"])
         trx_data["fromAddress"] = erc_data["from"]
         trx_data["toAddress"] = erc_data["to"]
         trx_data["amount"] = str(float(int(erc_data["value"], 16)) / pow(10, 18))
@@ -685,10 +685,10 @@ def trx_store(db_pool,base_trx,isErc):
 def eth_trx_store(db_pool,transaction_ids,erc_ids):
     try:
         for trxid in transaction_ids:
-            trx_data = yield eth_request_from_db("Service.GetTrx",[trxid])
+            trx_data = yield safe_eth_request_from_db("Service.GetTrx",[trxid])
             yield trx_store_eth(db_pool,json.loads(trx_data).get("result"))
         for erc_id in erc_ids:
-            erc_data = yield eth_request_from_db("Service.GetErc20Trx",[erc_id])
+            erc_data = yield safe_eth_request_from_db("Service.GetErc20Trx",[erc_id])
             yield trx_store_erc(db_pool, json.loads(erc_data).get("result"))
     except Exception,ex:
         print ex
