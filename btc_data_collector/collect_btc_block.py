@@ -134,11 +134,16 @@ class CollectBlockThread(threading.Thread):
         config_db = self.db.b_config
         config_db.update({"key": self.config.SYNC_STATE_FIELD},
                          {"key": self.config.SYNC_STATE_FIELD, "value": "true"})
+
         while self.stop_flag is False :
             self.latest_block_num = self._get_latest_block_num()
-            if  self.last_sync_block_num >= self.latest_block_num :
+            if self.latest_block_num is None or self.last_sync_block_num >= self.latest_block_num :
                 self.sync_status = False
-                time.sleep(1)
+                if self.latest_block_num is None:
+                    print "waiting(10s) collector1 http rpc"
+                    time.sleep(10)
+                else:
+                    time.sleep(1)
                 continue
             try:
                 # 获取当前链上最新块号
@@ -190,7 +195,9 @@ class CollectBlockThread(threading.Thread):
 
     def _get_latest_block_num(self):
         ret = self.wallet_api.http_request("getblockcount", [])
-        real_block_num = ret['result']
+        real_block_num = ret.get('result', None)
+        if real_block_num is None:
+            return None
         safe_block = 6
         safe_block_ret = self.db.b_config.find_one({"key": self.config.SAFE_BLOCK_FIELD})
         if safe_block_ret is not None:
