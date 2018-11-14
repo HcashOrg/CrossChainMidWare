@@ -140,14 +140,15 @@ func (client * LinkClient)LinkHttpFunc(function string,params *[]interface{},ist
 		fmt.Println(err.Error())
 		return nil
 	}
+
+	defer res.Body.Close()
+
+	body, err := ioutil.ReadAll(res.Body)
 	if res.StatusCode!=200 {
 		fmt.Println("error status code " + strconv.Itoa(res.StatusCode))
 		fmt.Println(err.Error())
 		return nil
 	}
-	defer res.Body.Close()
-
-	body, err := ioutil.ReadAll(res.Body)
 	if err != nil{
 		fmt.Println("2")
 		fmt.Println(err.Error())
