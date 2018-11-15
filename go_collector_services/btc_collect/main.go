@@ -893,6 +893,7 @@ func main(){
 		if count >= height{
 			break
 		}
+		time.Sleep(5 * time.Second)
 		fmt.Println("invalid chain height",count)
 	}
 
@@ -940,7 +941,7 @@ func main(){
 			param := make([]interface{},0)
 			json_data := link_client.SafeLinkHttpFunc(config.RpcServerConfig.GetInfoFunctionName[ChainType],&param ,config.RpcServerConfig.IsTls[ChainType])
 			//fmt.Println(json_data)
-			count,_ = json_data.Get("result").Get("blocks").Int()
+			count,_ := json_data.Get("result").Get("blocks").Int()
 			count = count - config.RpcServerConfig.SafeBlock[ChainType]
 			if old_count <count{
 				fmt.Println("current height:",old_count,"target height",count,"time",time.Now())

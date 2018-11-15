@@ -341,6 +341,7 @@ func main(){
 		if count>=int64(height){
 			break
 		}
+		time.Sleep(5 * time.Second)
 
 	}
 
