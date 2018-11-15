@@ -66,7 +66,7 @@ if (db.auth("dbAdmin", "admin12#$%") != 1) {
 
     db.b_config.insert({
         'key': 'syncblocknum',
-        'value': '6000000'
+        'value': '6700000'
     });
     db.b_config.insert({
         'key': 'safeblock',
