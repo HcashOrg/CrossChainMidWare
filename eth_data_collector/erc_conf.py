@@ -1,9 +1,9 @@
 
 
 ercda_info = {
-    "precison" : "14",
-    "chainId" : "ERCDA",
-    "address" : "0xb99f8b924c272b51389c6322d05139eaed836938"
+    "precison": "14",
+    "chainId": "ERCDA",
+    "address": "0xb99f8b924c272b51389c6322d05139eaed836938"
 }
 
 erc_map = {}
