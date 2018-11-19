@@ -123,14 +123,14 @@ def zchain_addr_importaddr(chainId, addr):
             if asset == None:
                 db.b_eths_address.insert({'chainId': temp_chainId, 'address': handle_addr, 'isContractAddress': True})
             else:
-                db.b_eths_address.update({'chainId': temp_chainId, 'address': handle_addr, 'isContractAddress': True})
+                db.b_eths_address.update({'chainId':temp_chainId,'address':handle_addr},{"$set":{ 'isContractAddress': True}})
         else:
             temp_chainId = chainId.lower()
             asset = db.b_eths_address.find_one({'chainId': temp_chainId, 'address': addr})
             if asset == None:
                 db.b_eths_address.insert({'chainId': temp_chainId, 'address': addr, 'isContractAddress': False})
             else:
-                db.b_eths_address.update({'chainId': temp_chainId, 'address': addr, 'isContractAddress': False})
+                db.b_eths_address.update({'chainId':temp_chainId,'address':addr},{"$set":{ 'isContractAddress': False}})
         eth_utils.add_guard_address(addr)
     elif ('erc' in chainId.lower()):
         erc_asset = None
@@ -319,6 +319,16 @@ def zchain_crypt_verify_message(chainId, addr, message, signature):
         return error_utils.mismatched_parameter_type('chainId', 'STRING')
 
     result = False
+
+    cache_record = db.get_collection("b_verify_cache").find_one({"chainId": chainId,"addr":addr, "message":message, "signature":signature})
+    if cache_record is not None:
+        result = True
+        return {
+        'chainId': chainId,
+        'data': result
+        }
+
+
     if sim_btc_plugin.has_key(chainId):
         result = sim_btc_plugin[chainId].sim_btc_verify_signed_message(addr, message, signature)
     elif chainId == "hc":
@@ -329,6 +339,9 @@ def zchain_crypt_verify_message(chainId, addr, message, signature):
         result = eth_utils.eth_verify_signed_message(addr, message, signature)
     else:
         return error_utils.invalid_chainid_type()
+    if result:
+        db.get_collection("b_verify_cache").insert_one(
+            {"chainId": chainId, "addr": addr, "message": message, "signature": signature})
 
     return {
         'chainId': chainId,
@@ -597,7 +610,7 @@ def zchain_address_create(chainId):
 @jsonrpc.method('Zchain.Withdraw.GetInfo(chainId=str)')
 def zchain_withdraw_getinfo(chainId):
     """
-    查询提现账户的信�?
+    查询提现账户的信�?
     :param chainId:
     :return:
     """
