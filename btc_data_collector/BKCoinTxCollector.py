@@ -30,9 +30,9 @@ class BKCoinTxCollector(CoinTxCollector):
 
 
     def do_collect_app(self):
-        self.wallet_api.http_request("set_password", ["12345678"])
+        #self.wallet_api.http_request("set_password", ["12345678"])
         self.wallet_api.http_request("unlock", ["12345678"])
-        self.wallet_api.http_request("wallet_create_account", ["hxcollector"])
+        #self.wallet_api.http_request("wallet_create_account", ["hxcollector"])
         while self.stop_flag is False:
             self.collect_token_contract()
             time.sleep(10)
