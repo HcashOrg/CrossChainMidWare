@@ -1,15 +1,14 @@
 # coding: utf-8
 
 import logging
-# import logging.handlers
-from twisted.logger import Logger
+import logging.handlers
 import os
 
 
 def get_logger():
   level = logging.DEBUG
   formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(module)s[%(lineno)d] - %(funcName)s - %(message)s')
-  logger = Logger() # logging.getLogger(__name__)
+  logger = logging.getLogger(__name__)
   logger.setLevel(level)
   ch = logging.StreamHandler()
   ch.setLevel(level)
