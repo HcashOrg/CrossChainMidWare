@@ -270,13 +270,28 @@ def zchain_trans_queryTrx(chainId, trxid):
         return error_utils.mismatched_parameter_type('chainId', 'STRING')
 
     result = ""
+    is_cache = False
+
+    cache_record = db.get_collection("b_query_trans_cache").find_one({"chainId": chainId,"trxid":trxid})
+    if cache_record is not None:
+        return {
+        'chainId': chainId,
+        'data': cache_record["result"]
+        }
     if sim_btc_plugin.has_key(chainId):
         result = sim_btc_plugin[chainId].sim_btc_get_transaction(trxid)
+        if "vout" in result:
+            is_cache = True
     elif chainId == "hc":
         result = hc_plugin.hc_get_transaction(trxid)
+        if "vout" in result:
+            is_cache = True
+
     elif chainId == "eth" or "erc" in chainId:
         source,respit = eth_utils.get_transaction_data(trxid)
         so_re_dic = {'source_trx':source,'respit_trx':respit}
+        if "input" in source:
+            is_cache = True
         if source != None and respit != None:
             result = so_re_dic
     else:
@@ -285,6 +300,9 @@ def zchain_trans_queryTrx(chainId, trxid):
     if result == "":
         return error_utils.error_response("Cannot query transaction.")
 
+    if is_cache:
+        db.get_collection("b_query_trans_cache").insert_one(
+            {"chainId": chainId, "trxid": trxid,"result":result})
     return {
         'chainId': chainId,
         'data': result
