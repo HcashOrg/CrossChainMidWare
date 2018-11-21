@@ -192,7 +192,7 @@ def zchain_trans_getEthTrxCount(chainId, addr, indexFormat):
     return result
 
 @jsonrpc.method('Zchain.Query.getBlockHeight(chainId=str)')
-def zchain_query_getEthTrxCount(chainId):
+def zchain_query_getBlockHeight(chainId):
     logger.info('Zchain.Query.getBlockHeight')
     if type(chainId) != unicode:
         return error_utils.mismatched_parameter_type('chainId', 'STRING')
