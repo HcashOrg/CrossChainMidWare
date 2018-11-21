@@ -4,6 +4,7 @@ import requests
 import json
 from base64 import encodestring
 from config import Db
+import math
 db =Db
 
 class hc_utils:
@@ -139,10 +140,12 @@ class hc_utils:
             for i in range(len(txout)):
                 if float(txout[i].get("amount")) >= all_need_amount:
                     bak_index = i
-                if float(txout[i].get("amount")) < all_need_amount:
+                elif float(txout[i].get("amount")) < all_need_amount and bak_index!=-1:
                     sum = round(sum + float(txout[bak_index].get("amount")), 8)
                     vin_need.append(txout[bak_index])
                     use_idx.append(bak_index)
+                    break
+                elif float(txout[i].get("amount")) < all_need_amount and bak_index==-1:
                     break
 
         if bak_index == -1:
@@ -153,7 +156,7 @@ class hc_utils:
                 vin_need.append(txout[i])
                 use_idx.append(i)
         if len(txout) > 50 and len(vin_need) < 10:
-            for i in range(10):
+            for i in range(10 - len(vin_need)):
                 cur_idx = len(txout) - i - 1
                 if cur_idx not in use_idx:
                     sum = round(sum + float(txout[cur_idx].get("amount")), 8)
@@ -172,7 +175,7 @@ class hc_utils:
         #set a fee
         resp = ""
         trx_size = len(vin_need) * self.config["vin_size"] + (len(vouts) + 1) * self.config["vout_size"]
-        cal_fee = round(trx_size / 1000, 0) * self.config["per_fee"]
+        cal_fee = math.ceil(trx_size / 1000.0) * self.config["per_fee"]
         cal_fee = round(cal_fee, 8)
         if round(sum-amount,8) == cal_fee:
             resp = self.http_request("createrawtransaction", [vins, vouts])
@@ -180,7 +183,8 @@ class hc_utils:
             if vouts.has_key(from_addr):
                 vouts[from_addr] = round(sum - amount - cal_fee + vouts[from_addr],8)
             else:
-                vouts[from_addr] = round(sum - amount - cal_fee,8)
+                if round(sum - amount - cal_fee,8) >0.00000546:
+                    vouts[from_addr] = round(sum - amount - cal_fee, 8)
             resp = self.http_request("createrawtransaction", [vins, vouts])
         if resp["result"] != None:
             trx_hex = resp['result']
