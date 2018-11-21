@@ -191,6 +191,76 @@ def zchain_trans_getEthTrxCount(chainId, addr, indexFormat):
     #print result
     return result
 
+@jsonrpc.method('Zchain.Query.getBlockHeight(chainId=str)')
+def zchain_query_getEthTrxCount(chainId):
+    logger.info('Zchain.Query.getBlockHeight')
+    if type(chainId) != unicode:
+        return error_utils.mismatched_parameter_type('chainId', 'STRING')
+    chainId = chainId.lower()
+    result = {}
+    if 'erc' in chainId:
+        result = eth_utils.eth_get_block_height()
+    elif 'eth' == chainId:
+        result = eth_utils.eth_get_block_height()
+    else:
+        return error_utils.invalid_chainid_type()
+    if result == {}:
+        return error_utils.error_response("Cannot eth trx count.")
+    #print result
+    return result
+
+
+@jsonrpc.method('Zchain.Query.getTrxHistoryByAddress(chainId=str,address=str,startBlock=str,endBlock=str)')
+def zchain_query_getTrxHistoryByAddress(chainId,address,startBlock,endBlock):
+    logger.info('Zchain.Query.getTrxHistoryByAddress')
+    if type(chainId) != unicode:
+        return error_utils.mismatched_parameter_type('chainId', 'STRING')
+    chainId = chainId.lower()
+    result = []
+    if 'erc' in chainId:
+        result = eth_utils.eth_get_trx_history_by_address(address,startBlock,endBlock)
+    elif 'eth' == chainId:
+        result = eth_utils.eth_get_trx_history_by_address(address,startBlock,endBlock)
+    else:
+        return error_utils.invalid_chainid_type()
+    #print result
+    return result
+
+
+@jsonrpc.method('Zchain.Query.getEthTrx(chainId=str,trxid=str)')
+def zchain_query_getEthTrx(chainId,trxid):
+    logger.info('Zchain.Query.getEthTrx')
+    if type(chainId) != unicode:
+        return error_utils.mismatched_parameter_type('chainId', 'STRING')
+    chainId = chainId.lower()
+    result = {}
+    if 'erc' in chainId:
+        result = eth_utils.eth_get_trx(trxid)
+    elif 'eth' == chainId:
+        result = eth_utils.eth_get_trx(trxid)
+    else:
+        return error_utils.invalid_chainid_type()
+    #print result
+    return result
+
+@jsonrpc.method('Zchain.Query.getUtxoCount(chainId=str,address=str)')
+def zchain_query_getUtxoCount(chainId,address):
+    logger.info('Zchain.Query.getUtxoCount')
+    if type(chainId) != unicode:
+        return error_utils.mismatched_parameter_type('chainId', 'STRING')
+    chainId = chainId.lower()
+    result = {}
+    if sim_btc_plugin.has_key(chainId):
+        result = sim_btc_plugin[chainId].sim_btc_get_trx_out(address)
+    elif chainId == "hc":
+        result = hc_plugin.hc_get_trx_out(address)
+    else:
+        return error_utils.invalid_chainid_type()
+    #print result
+    return len(result)
+
+
+
 @jsonrpc.method('Zchain.Trans.createTrx(chainId=str, from_addr=str,dest_info=dict)')
 def zchain_trans_createTrx(chainId, from_addr,dest_info):
     logger.info('Zchain.Trans.createTrx')

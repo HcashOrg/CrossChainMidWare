@@ -297,6 +297,34 @@ def eth_get_collect_money(accountList):
     result_data["total_amount"] = total_amount
     return result_data
 
+def eth_get_block_height():
+    ret = eth_request("Service.Service.GetBlockHeight",[])
+    json_data = json.loads(ret)
+    if json_data.get("result") != None:
+        return int(json_data['result'])
+
+    else:
+        return 0
+
+def eth_get_trx_history_by_address(addr,startblock,endblock):
+    ret = eth_request("Service.Service.GetTrxHistoryByAddress",[[addr,startblock,endblock]])
+    json_data = json.loads(ret)
+    if json_data.get("result") != None:
+        return json_data['result']
+
+    else:
+        return []
+
+
+def eth_get_trx(trxid):
+    ret = eth_request("Service.Service.GetTrx",[trxid])
+    json_data = json.loads(ret)
+    if json_data.get("result") != None:
+        return json_data['result']
+
+    else:
+        return {}
+
 
 if __name__ == '__main__':
     add_guard_address("0x66c69ce0515edbd2ed7f299fb05a25065c3608d7erc")
