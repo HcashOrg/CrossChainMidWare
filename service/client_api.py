@@ -25,5 +25,5 @@ def client_upgrade_check_new_version(clientId, localVersion):
 
     return {
         'clientId': clientId,
-        'downloadUrl': "/download/blocklink_wallet_upgrade.xml"
+        'downloadUrl': "/download/hyperexchange_wallet_upgrade.xml"
     }
