@@ -153,11 +153,36 @@ class sim_btc_utils:
             amount = round(amount + num,8)
             vouts[addr]=round(num,8)
 
-        for out in txout:
-            if sum >= round(amount+fee,8):
-               break
-            sum = round(sum +float(out.get("amount")),8)
-            vin_need.append(out)
+        txout = sorted(txout, key=lambda d: float(d["amount"]), reverse=True)
+        #{"amount":tx["value"],"txid":tx["txid"],"vout":tx["vout"],"scriptPubKey":tx["scriptPubKey"]}
+        all_need_amount = round(amount+fee,8)
+        bak_index = -1
+        use_idx = []
+        if len(txout)>50:
+            for i in range(len(txout)):
+                if float(txout[i].get("amount")) >= all_need_amount:
+                    bak_index=i
+                if float(txout[i].get("amount")) < all_need_amount:
+                    sum = round(sum + float(txout[bak_index].get("amount")), 8)
+                    vin_need.append(txout[bak_index])
+                    use_idx.append(bak_index)
+                    break
+
+        if bak_index == -1:
+            for i in range(len(txout)):
+                if sum >= round(amount + fee, 8):
+                    break
+                sum = round(sum + float(txout[i].get("amount")), 8)
+                vin_need.append(txout[i])
+                use_idx.append(i)
+        if len(txout)>50 and len(vin_need)<10:
+            for i in range(10):
+                cur_idx = len(txout)-i-1
+                if cur_idx not in use_idx:
+                    sum = round(sum + float(txout[cur_idx].get("amount")), 8)
+                    vin_need.append(txout[cur_idx])
+                    use_idx.append(cur_idx)
+
         if sum < round(amount+fee,8):
             return ""
         vins = []
@@ -169,13 +194,19 @@ class sim_btc_utils:
             vins.append(vin)
         #set a fee
         resp = ""
-        if round(sum-amount,8) == fee:
+        trx_size = len(vin_need) * self.config["vin_size"] + (len(vouts)+1) * self.config["vout_size"]
+        cal_fee = round(trx_size/1000,0) * self.config["per_fee"]
+        cal_fee = round(cal_fee,8)
+        if cal_fee>fee:
+            logger.error("cal fee large than max fee!")
+            return ""
+        if round(sum-amount,8) == cal_fee:
             resp = self.http_request("createrawtransaction", [vins, vouts])
         else:
             if vouts.has_key(from_addr):
-                vouts[from_addr] = round(sum - amount - fee + vouts[from_addr],8)
+                vouts[from_addr] = round(sum - amount - cal_fee + vouts[from_addr],8)
             else:
-                vouts[from_addr] = round(sum - amount - fee,8)
+                vouts[from_addr] = round(sum - amount - cal_fee,8)
             resp = self.http_request("createrawtransaction", [vins, vouts])
         if resp["result"] != None:
             trx_hex = resp['result']

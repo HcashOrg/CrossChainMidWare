@@ -27,6 +27,9 @@ for value in sim_btc_utils_all:
         sim_btc_config["collect_host"] = app.config[upper+"_COLLECT_HOST"]
         sim_btc_config["collect_port"] = app.config[upper+"_COLLECT_PORT"]
         sim_btc_config["fee"] = app.config[upper+"_FEE"]
+        sim_btc_config["per_fee"] = app.config[upper+"_PER_FEE"]
+        sim_btc_config["vin_size"] = app.config["VIN_SIZE"]
+        sim_btc_config["vout_size"] = app.config["VOUT_SIZE"]
         sim_btc_plugin[value] = sim_btc_utils(value, sim_btc_config)
 hc_config = {}
 if app.config.has_key("HC_HOST") and app.config.has_key("HC_PORT") and app.config.has_key("HC_FEE"):
@@ -35,6 +38,9 @@ if app.config.has_key("HC_HOST") and app.config.has_key("HC_PORT") and app.confi
     hc_config["collect_host"] = app.config["HC_COLLECT_HOST"]
     hc_config["collect_port"] = app.config["HC_COLLECT_PORT"]
     hc_config["fee"] = app.config["HC_FEE"]
+    hc_config["per_fee"] = app.config["HC_PER_FEE"]
+    hc_config["vin_size"] = app.config["VIN_SIZE"]
+    hc_config["vout_size"] = app.config["VOUT_SIZE"]
 hc_plugin = hc_utils("hc", hc_config)
 from service import sim_api
 from service import client_api

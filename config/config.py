@@ -38,11 +38,14 @@ class DevelopmentConfig(Config):
     ETH_PORT = 5544
     ETH_FEE = 0.025
     ETH_Minimum = 0.5
+    VIN_SIZE = 2000
+    VOUT_SIZE = 80
     BTC_HOST = 'btc_wallet'
     BTC_PORT = 60011
     BTC_COLLECT_HOST = 'localhost'
     BTC_COLLECT_PORT = 5444
     BTC_FEE =0.001
+    BTC_PER_FEE = 0.00005
     ETP_PORT = 8820
     ETP_URL = 'etp_wallet'
     LTC_HOST = 'ltc_wallet'
@@ -50,11 +53,13 @@ class DevelopmentConfig(Config):
     LTC_COLLECT_HOST = 'localhost'
     LTC_COLLECT_PORT = 5445
     LTC_FEE =0.001
+    LTC_PER_FEE = 0.00005
     HC_HOST = "hc_wallet"
     HC_PORT = 19021
     HC_COLLECT_HOST = "localhost"
     HC_COLLECT_PORT = 5447
-    HC_FEE = 0.01
+    HC_FEE = 0.05
+    HC_PER_FEE = 0.001
     # QUERY_SERVICE_HOST = "192.168.1.142"
     # QUERY_SERVICE_PORT = 5444
 
