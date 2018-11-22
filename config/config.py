@@ -36,7 +36,7 @@ class DevelopmentConfig(Config):
     ETH_SECRET_KEY = 'Q!wert123@'
     ETH_URL = '127.0.0.1'
     ETH_PORT = 5544
-    ETH_FEE = 0.025
+    ETH_FEE = 0.002
     ETH_Minimum = 0.5
     VIN_SIZE = 1800
     VOUT_SIZE = 80
