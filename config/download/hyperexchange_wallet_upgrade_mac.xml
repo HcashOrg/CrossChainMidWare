@@ -2,7 +2,7 @@
 <Info>
     <Version>1.1.4</Version>
     <update>1.1.4</update>
-    <UpdateServer>http://117.78.44.37:5005/download/mac</UpdateServer>
+    <UpdateServer>http://36.152.8.188:8787/download/mac</UpdateServer>
     <MainFiles>
 		<File>
             <Name>hyperexchange.zip</Name>
