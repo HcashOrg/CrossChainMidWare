@@ -29,7 +29,7 @@ class BKCoinTxCollector(CoinTxCollector):
         self.wallet_api = WalletApi(self.config.ASSET_SYMBOL, conf)
         ret = self.db.b_config.find_one({"key": self.config.SYNC_BLOCK_NUM})
         if ret is None:
-            self.db.b_config.insert({self.config.SYNC_BLOCK_NUM: '0'})
+            self.db.b_config.insert({"key":self.config.SYNC_BLOCK_NUM, "value":'0'})
             self.last_block = 0
         else:
             self.last_block = int(ret["value"])
