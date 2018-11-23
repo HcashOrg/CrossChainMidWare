@@ -298,7 +298,7 @@ def eth_get_collect_money(accountList):
     return result_data
 
 def eth_get_block_height():
-    ret = eth_request("Service.Service.GetBlockHeight",[])
+    ret = eth_request("Service.GetBlockHeight",[])
     json_data = json.loads(ret)
     if json_data.get("result") != None:
         return int(json_data['result'])
@@ -307,7 +307,7 @@ def eth_get_block_height():
         return 0
 
 def eth_get_trx_history_by_address(addr,startblock,endblock):
-    ret = eth_request("Service.Service.GetTrxHistoryByAddress",[[addr,startblock,endblock]])
+    ret = eth_request("Service.GetTrxHistoryByAddress",[[addr,startblock,endblock]])
     json_data = json.loads(ret)
     if json_data.get("result") != None:
         return json_data['result']
@@ -317,7 +317,7 @@ def eth_get_trx_history_by_address(addr,startblock,endblock):
 
 
 def eth_get_trx(trxid):
-    ret = eth_request("Service.Service.GetTrx",[trxid])
+    ret = eth_request("Service.GetTrx",[trxid])
     json_data = json.loads(ret)
     if json_data.get("result") != None:
         return json_data['result']
