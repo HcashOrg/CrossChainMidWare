@@ -41,7 +41,7 @@ class BKCoinTxCollector(CoinTxCollector):
         #self.wallet_api.http_request("wallet_create_account", ["hxcollector"])
         while self.stop_flag is False:
             self.collect_token_contract()
-            db.b_config.update({"key": self.config.SYNC_BLOCK_NUM}}, {
+            db.b_config.update({"key": self.config.SYNC_BLOCK_NUM}, {
                 "$set": {"key": self.config.SYNC_BLOCK_NUM, "value": str(self.last_block)}})
             time.sleep(10)
         return ""
