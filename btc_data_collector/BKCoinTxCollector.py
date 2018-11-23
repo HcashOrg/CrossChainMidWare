@@ -27,6 +27,12 @@ class BKCoinTxCollector(CoinTxCollector):
         self.config = BKCollectorConfig()
         conf = {"host": self.config.RPC_HOST, "port": self.config.RPC_PORT}
         self.wallet_api = WalletApi(self.config.ASSET_SYMBOL, conf)
+        ret = self.db.b_config.find_one({"key": self.config.SYNC_BLOCK_NUM})
+        if ret is None:
+            self.db.b_config.insert({self.config.SYNC_BLOCK_NUM: '0'})
+            self.last_block = 0
+        else:
+            self.last_block = int(ret)
 
 
     def do_collect_app(self):
@@ -35,12 +41,14 @@ class BKCoinTxCollector(CoinTxCollector):
         #self.wallet_api.http_request("wallet_create_account", ["hxcollector"])
         while self.stop_flag is False:
             self.collect_token_contract()
+            db.b_config.update({"key": self.config.SYNC_BLOCK_NUM}}, {
+                "$set": {"key": self.config.SYNC_BLOCK_NUM, "value": str(self.last_block)}})
             time.sleep(10)
         return ""
 
 
     def collect_token_contract(self):
-        ret = self.wallet_api.http_request("get_contract_storage_changed", [0])
+        ret = self.wallet_api.http_request("get_contract_storage_changed", [self.last_block])
         if not ret.has_key('result') or ret['result'] == None:
             logging.info("Get contract failed")
             return
@@ -48,6 +56,7 @@ class BKCoinTxCollector(CoinTxCollector):
         for c in ret["result"]:
             if self._check_contract_type(c["contract_address"]):
                 self._get_token_contract_info(c["contract_address"], c["block_num"])
+            self.last_block = c["block_num"]
         if len(self.order_list) > 0:
             self.db.b_exchange_contracts.insert_many(self.order_list, ordered=False)
         self.order_list = []
