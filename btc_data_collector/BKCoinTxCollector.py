@@ -32,7 +32,7 @@ class BKCoinTxCollector(CoinTxCollector):
             self.db.b_config.insert({self.config.SYNC_BLOCK_NUM: '0'})
             self.last_block = 0
         else:
-            self.last_block = int(ret)
+            self.last_block = int(ret["value"])
 
 
     def do_collect_app(self):
@@ -56,7 +56,7 @@ class BKCoinTxCollector(CoinTxCollector):
         for c in ret["result"]:
             if self._check_contract_type(c["contract_address"]):
                 self._get_token_contract_info(c["contract_address"], c["block_num"])
-            self.last_block = c["block_num"]
+            self.last_block = c["block_num"] + 1
         if len(self.order_list) > 0:
             self.db.b_exchange_contracts.insert_many(self.order_list, ordered=False)
         self.order_list = []
