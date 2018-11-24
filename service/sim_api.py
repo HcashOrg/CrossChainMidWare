@@ -13,6 +13,9 @@ from datetime import datetime
 from config.erc_conf import erc_chainId_map
 import json
 import leveldb
+import time
+last_clean_broadcast_cache_time = time.time()
+
 
 @jsonrpc.method('Zchain.Crypt.Sign(chainId=str, addr=str, message=str)')
 def zchain_crypt_sign(chainId, addr, message):
@@ -81,8 +84,16 @@ def zchain_Addr_GetAddErc(chainId,addr,precison):
 @jsonrpc.method('Zchain.Trans.broadcastTrx(chainId=str, trx=str)')
 def zchain_trans_broadcastTrx(chainId, trx):
     logger.info('Zchain.Trans.broadcastTrx')
+    global last_clean_broadcast_cache_time
     if type(chainId) != unicode:
         return error_utils.mismatched_parameter_type('chainId', 'STRING')
+
+    broad_cast_record = db.get_collection("b_broadcast_trans_cache").find_one({"chainId": chainId,"trx":trx,"effectiveTime":{"$gt":time.time()-10}})
+    if broad_cast_record is not None:
+        return {
+            'chainId': chainId,
+            'data': broad_cast_record['result']
+        }
 
     result = ""
     if sim_btc_plugin.has_key(chainId):
@@ -98,7 +109,11 @@ def zchain_trans_broadcastTrx(chainId, trx):
 
     if result == "":
         return error_utils.error_response("Cannot broadcast transactions.")
-
+    db.get_collection("b_broadcast_trans_cache").insert_one(
+        {"chainId": chainId, "trx": trx, "effectiveTime": time.time(),"result":result})
+    if time.time()- last_clean_broadcast_cache_time>10*60:
+        db.get_collection("b_broadcast_trans_cache").delete_many({"effectiveTime":{"$lt":time.time()-10}})
+        last_clean_broadcast_cache_time = time.time()
     return {
         'chainId': chainId,
         'data': result

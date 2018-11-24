@@ -11,6 +11,7 @@ from config import Client
 from config import Jsonrpc
 from utils.sim_btc_utils import sim_btc_utils
 from utils.hc_utils import hc_utils
+import time
 logger.info('Start app...')
 app = App
 db = Db
@@ -42,5 +43,6 @@ if app.config.has_key("HC_HOST") and app.config.has_key("HC_PORT") and app.confi
     hc_config["vin_size"] = app.config["VIN_SIZE"]
     hc_config["vout_size"] = app.config["VOUT_SIZE"]
 hc_plugin = hc_utils("hc", hc_config)
+
 from service import sim_api
 from service import client_api
