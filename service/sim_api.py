@@ -90,6 +90,8 @@ def zchain_trans_broadcastTrx(chainId, trx):
 
     broad_cast_record = db.get_collection("b_broadcast_trans_cache").find_one({"chainId": chainId,"trx":trx,"effectiveTime":{"$gt":time.time()-10}})
     if broad_cast_record is not None:
+        if broad_cast_record['result'] == "":
+            return error_utils.error_response("Cannot broadcast transactions.")
         return {
             'chainId': chainId,
             'data': broad_cast_record['result']
@@ -107,10 +109,11 @@ def zchain_trans_broadcastTrx(chainId, trx):
     else:
         return error_utils.invalid_chainid_type()
 
+    db.get_collection("b_broadcast_trans_cache").insert_one(
+        {"chainId": chainId, "trx": trx, "effectiveTime": time.time(), "result": result})
     if result == "":
         return error_utils.error_response("Cannot broadcast transactions.")
-    db.get_collection("b_broadcast_trans_cache").insert_one(
-        {"chainId": chainId, "trx": trx, "effectiveTime": time.time(),"result":result})
+
     if time.time()- last_clean_broadcast_cache_time>10*60:
         db.get_collection("b_broadcast_trans_cache").delete_many({"effectiveTime":{"$lt":time.time()-10}})
         last_clean_broadcast_cache_time = time.time()
