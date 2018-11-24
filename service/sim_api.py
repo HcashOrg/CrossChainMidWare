@@ -14,6 +14,7 @@ from config.erc_conf import erc_chainId_map
 import json
 import leveldb
 import time
+import hashlib
 last_clean_broadcast_cache_time = time.time()
 
 
@@ -88,7 +89,11 @@ def zchain_trans_broadcastTrx(chainId, trx):
     if type(chainId) != unicode:
         return error_utils.mismatched_parameter_type('chainId', 'STRING')
 
-    broad_cast_record = db.get_collection("b_broadcast_trans_cache").find_one({"chainId": chainId,"trx":trx,"effectiveTime":{"$gt":time.time()-10}})
+    md = hashlib.md5()
+    md.update(trx)
+    trxId = md.hexdigest()
+
+    broad_cast_record = db.get_collection("b_broadcast_trans_cache").find_one({"chainId": chainId,"trx":trxId,"effectiveTime":{"$gt":int(time.time())-10}})
     if broad_cast_record is not None:
         if broad_cast_record['result'] == "":
             return error_utils.error_response("Cannot broadcast transactions.")
@@ -110,13 +115,14 @@ def zchain_trans_broadcastTrx(chainId, trx):
         return error_utils.invalid_chainid_type()
 
     db.get_collection("b_broadcast_trans_cache").insert_one(
-        {"chainId": chainId, "trx": trx, "effectiveTime": time.time(), "result": result})
+        {"chainId": chainId, "trx": trxId, "effectiveTime": int(time.time()), "result": result})
+    if int(time.time())- last_clean_broadcast_cache_time>10*60:
+        db.get_collection("b_broadcast_trans_cache").delete_many({"effectiveTime":{"$lt":int(time.time())-10}})
+        last_clean_broadcast_cache_time = int(time.time())
     if result == "":
         return error_utils.error_response("Cannot broadcast transactions.")
 
-    if time.time()- last_clean_broadcast_cache_time>10*60:
-        db.get_collection("b_broadcast_trans_cache").delete_many({"effectiveTime":{"$lt":time.time()-10}})
-        last_clean_broadcast_cache_time = time.time()
+
     return {
         'chainId': chainId,
         'data': result
