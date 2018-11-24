@@ -83,6 +83,10 @@ if (db.auth("dbAdmin", "admin12#$%") != 1) {
         'value': 'false'
     });
     db.b_config.insert({
+        'key': 'bksyncblocknum',
+        'value': '0'
+    });
+    db.b_config.insert({
         'key': 'btcsyncblocknum',
         'value': '549480'
     });
