@@ -145,6 +145,7 @@ def init_account_info(db):
 
 def TurnAmountFromEth(source,precision):
     ret = ''
+    precision = int(precision)
     if len(source) <= int(precision):
         ret += '0.'
         temp_precision = '0' * (precision - len(source))

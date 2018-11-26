@@ -166,6 +166,7 @@ def eth_validate_address(addr):
     return ret
 def TurnAmountFromEth(source,precision):
     ret = ''
+    precision = int(precision)
     if len(source) <= int(precision):
         ret += '0.'
         temp_precision = '0' * (precision - len(source))

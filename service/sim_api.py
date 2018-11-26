@@ -5,7 +5,7 @@ from config import logger
 from utils import eth_utils
 from utils import etp_utils
 from service import db
-from service import sim_btc_plugin
+from service import sim_btc_plugin,sim_btc_utils_all
 from service import hc_plugin
 from utils import error_utils
 import pymongo
@@ -790,7 +790,7 @@ def zchain_address_get_balance(chainId, addr):
        if erc_chainId_map.has_key(ercchainId):
            asset = erc_chainId_map[ercchainId]
        if asset == None:
-           error_utils.invalid_chainid_type(chainId)
+           return error_utils.invalid_chainid_type(chainId)
 
        temp = {
            'precison':asset['precison'],
@@ -800,8 +800,10 @@ def zchain_address_get_balance(chainId, addr):
        balance = eth_utils.eth_get_address_balance(temp,chainId)
     elif chainId == "hc":
         balance = hc_plugin.hc_get_balance(addr)
-    else:
+    elif chainId in sim_btc_utils_all:
         balance = sim_btc_plugin[chainId].sim_btc_get_balance(addr)
+    else:
+        return error_utils.invalid_chainid_type(chainId)
 
     return {
         'chainId': chainId,
