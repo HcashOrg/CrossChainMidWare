@@ -109,7 +109,7 @@ func one_collect_data(data_chan chan map[int]simplejson.Json,height []int){
 				param_gettransaction := make([]interface{},0)
 				param_gettransaction = append(param_gettransaction,txids.(string))
 				param_gettransaction = append(param_gettransaction,2)
-				tx_data := link_client.LinkHttpFunc("getrawtransaction",&param_gettransaction,config.RpcServerConfig.IsTls[ChainType] )
+				tx_data := link_client.SafeLinkHttpFunc("getrawtransaction",&param_gettransaction,config.RpcServerConfig.IsTls[ChainType] )
 				map_data,err := tx_data.Get("result").Map()
 				if err!=nil{
 					fmt.Println(err.Error())
