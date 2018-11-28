@@ -1,0 +1,8 @@
+v1.1.7
+1. New login page ui
+2. Auto backup modify
+3. Modify the way that senators sign withdraw-trxs
+4. Save hx_node's output to log file
+5. Fix some bugs
+
+All users must upgrade to this version!!!
