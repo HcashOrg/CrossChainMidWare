@@ -581,7 +581,7 @@ def trx_store_erc(db_pool,erc_trxs):
                                                     erc_out['chainId'] = erc_contract["chainId"].lower()
                                                     erc_out['asset_symbol'] = erc_contract["chainId"]
                                                     erc_out['amount'] = str(TurnAmountFromEth(str(int(erc_trx["value"], 16)),int(erc_contract["precison"])))
-                                                    erc_out['call_contract'] = source_trx["to"]
+                                                    erc_out['call_contract'] = json.loads(source_trx).get("result")["to"]
                                                         #str("%."+asset_account["precison"]+"lf"%(float(int(erc_trx["value"], 16)) / pow(10, int(erc_contract["precison"])))).rstrip('0')
                                                     eth_out_data = yield db_pool.b_withdraw_transaction.find_one(
                                                         {"txid": erc_out["txid"], "index": erc_out["index"], "asset_symbol": erc_out["asset_symbol"]})
