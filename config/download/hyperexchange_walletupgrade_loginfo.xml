@@ -1,8 +1,5 @@
-v1.1.7
-1. New login page ui
-2. Auto backup modify
-3. Modify the way that senators sign withdraw-trxs
-4. Save hx_node's output to log file
-5. Fix some bugs
+1. Now you can see your bonus correctly(if there is)
+2. Fix some other bugs
 
-All users must upgrade to this version!!!
+The wallet will replay the chain data when first launched. It will take you a few minutes.
+All users must upgrade the wallet to this version !!!
