@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from service import jsonrpc
-from config import logger
+from config import logger,App
 from utils import eth_utils
 from utils import etp_utils
 from service import db
@@ -682,6 +682,10 @@ def zchain_configuration_set(chainId, key, value):
         return {
             "result": result
         }
+
+@jsonrpc.method('Zchain.Plugin.QuerySymbol()')
+def zchain_plugin_querysymbol():
+    return App.config["SUPPORT_MIDWARE_PLUGIN_SYMBOL"]
 
 
 # TODO, 备份私钥功能暂时注释，正式上线要加回
