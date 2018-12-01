@@ -1,5 +1,5 @@
-1. Now you can see your bonus correctly(if there is)
-2. Fix some other bugs
+v1.1.9
+1. add new coin ERC20-PAX
+2. fix some bugs
 
-The wallet will replay the chain data when first launched. It will take you a few minutes.
-All users must upgrade the wallet to this version !!!
+If you upgrade to this version, your wallet will replay the chain data. This will take you a few minutes.
