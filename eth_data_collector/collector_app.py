@@ -530,6 +530,7 @@ def trx_store_erc(db_pool,erc_trxs):
                     {"txid": erc_in["txid"],
                      "index": erc_in["index"],
                      "asset_symbol": erc_in["asset_symbol"]})
+                erc_in["index"] = hex(int(erc_in["index"]))[2:]
                 if eth_in_data == None:
                     yield db_pool.b_deposit_transaction.insert(erc_in)
                 else:
@@ -585,6 +586,7 @@ def trx_store_erc(db_pool,erc_trxs):
                                                         #str("%."+asset_account["precison"]+"lf"%(float(int(erc_trx["value"], 16)) / pow(10, int(erc_contract["precison"])))).rstrip('0')
                                                     eth_out_data = yield db_pool.b_withdraw_transaction.find_one(
                                                         {"txid": erc_out["txid"], "index": erc_out["index"], "asset_symbol": erc_out["asset_symbol"]})
+                                                    erc_out["index"] = hex(int(erc_out["index"]))[2:]
                                                     if eth_out_data == None:
                                                         yield db_pool.b_withdraw_transaction.insert(erc_out)
                                                     else:
