@@ -1,5 +1,9 @@
+v1.1.10
+1. fix withdrawal status change bug
+All users must upgrade to this version.
+
+
 v1.1.9
 1. add new coin ERC20-PAX
 2. fix some bugs
-
 If you upgrade to this version, your wallet will replay the chain data. This will take you a few minutes.
