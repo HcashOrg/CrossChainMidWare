@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Info>
-    <Version>1.1.8</Version>
-    <update>1.1.8</update>
-	<ForceUpdate>false</ForceUpdate>
+    <Version>1.2.0</Version>
+    <update>1.2.0</update>
+	<ForceUpdate>true</ForceUpdate>
     <UpdateServer>http://36.152.8.188:8787/download/mac</UpdateServer>
     <MainFiles>
 		<File>
             <Name>hyperexchange.zip</Name>
-            <LatestVer>1.1.8</LatestVer>
+            <LatestVer>1.2.0</LatestVer>
         </File>		
     </MainFiles>
     <UpdateFiles>
