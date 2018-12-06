@@ -384,7 +384,7 @@ class BTCCoinTxCollector(CoinTxCollector):
                 "txid": base_trx_data["txid"],
                 "from_account": in_set.keys()[0],
                 "to_account": multisig_out_addr,
-                "amount": str(out_set.values()[0]),
+                "amount": "%.8f"%(out_set.values()[0]),
                 "asset_symbol": self.config.ASSET_SYMBOL,
                 "blockNum": block_num,
                 "chainId": self.config.ASSET_SYMBOL.lower()
@@ -396,7 +396,7 @@ class BTCCoinTxCollector(CoinTxCollector):
                     "txid": base_trx_data["txid"],
                     "from_account": multisig_in_addr,
                     "to_account": k,
-                    "amount": str(v),
+                    "amount": "%.8f"%(v),
                     "asset_symbol": self.config.ASSET_SYMBOL,
                     "blockNum": block_num,
                     "chainId": self.config.ASSET_SYMBOL.lower()
