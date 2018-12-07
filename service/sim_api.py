@@ -402,6 +402,53 @@ def zchain_trans_queryTrx(chainId, trxid):
         'data': result
     }
 
+@jsonrpc.method('Zchain.Trans.queryTransBatch(chainId=str, trxids=list)')
+def zchain_trans_queryTrx(chainId, trxids):
+    chainId = chainId.lower()
+    logger.info('Zchain.Trans.queryTransBatch')
+    if type(chainId) != unicode:
+        return error_utils.mismatched_parameter_type('chainId', 'STRING')
+    if type(trxids) != list:
+        return error_utils.mismatched_parameter_type('trxids', 'LIST')
+    res_data = {}
+    for one_txid in trxids:
+        result = ""
+        is_cache = False
+        cache_record = db.get_collection("b_query_trans_cache").find_one({"chainId": chainId,"trxid":one_txid})
+        if cache_record is not None:
+            res_data[one_txid]=cache_record["result"]
+            continue
+        if sim_btc_plugin.has_key(chainId):
+            result = sim_btc_plugin[chainId].sim_btc_get_transaction(one_txid)
+            if "vout" in result:
+                is_cache = True
+        elif chainId == "hc":
+            result = hc_plugin.hc_get_transaction(one_txid)
+            if "vout" in result:
+                is_cache = True
+
+        elif chainId == "eth" or "erc" in chainId:
+            source,respit = eth_utils.get_transaction_data(one_txid)
+            so_re_dic = {'source_trx':source,'respit_trx':respit}
+            if "input" in source:
+                is_cache = True
+            if source != None and respit != None:
+                result = so_re_dic
+        else:
+            continue
+
+        if result == "":
+            continue
+
+        if is_cache:
+            db.get_collection("b_query_trans_cache").insert_one(
+                {"chainId": chainId, "trxid": one_txid,"result":result})
+        res_data[one_txid] = result
+    return {
+        'chainId': chainId,
+        'data': res_data
+    }
+
 @jsonrpc.method('Zchain.Trans.getTrxOuts(chainId=str, addr=str)')
 def zchain_trans_getTrxOuts(chainId, addr):
     chainId = chainId.lower()
