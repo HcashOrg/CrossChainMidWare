@@ -1,9 +1,19 @@
+v1.2.1
+1. now wallet will be launched faster
+2. reduce the frequency of accessing Middleware
+3. optimizing bonus distribution strategy
+4. now you can add some favorite pairs in order center
+5. now you can select the appropriate gas price when you allot ETH or ERC assets
+6. fix some bugs
+
+All users must upgrade to this version.
+If you upgrade to this version, your wallet will replay the chain data. This will take you a few minutes.
+
+
 v1.2.0
 1. fix withdrawal status change bug
-All users must upgrade to this version.
 
 
 v1.1.9
 1. add new coin ERC20-PAX
 2. fix some bugs
-If you upgrade to this version, your wallet will replay the chain data. This will take you a few minutes.
