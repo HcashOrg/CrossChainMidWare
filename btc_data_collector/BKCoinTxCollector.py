@@ -48,7 +48,7 @@ class BKCoinTxCollector(CoinTxCollector):
 
 
     def collect_token_contract(self):
-        ret = self.wallet_api.http_request("get_contract_storage_changed", [self.last_block])
+        ret = self.wallet_api.http_request("get_contract_storage_changed", [self.last_block-25])
         if not ret.has_key('result') or ret['result'] == None:
             logging.info("Get contract failed")
             return
@@ -56,7 +56,8 @@ class BKCoinTxCollector(CoinTxCollector):
         for c in ret["result"]:
             if self._check_contract_type(c["contract_address"]):
                 self._get_token_contract_info(c["contract_address"], c["block_num"])
-            self.last_block = c["block_num"] + 1
+            if c["block_num"] >= self.last_block:
+                self.last_block = c["block_num"] + 1
         if len(self.order_list) > 0:
             self.db.b_exchange_contracts.insert_many(self.order_list, ordered=False)
         self.order_list = []
