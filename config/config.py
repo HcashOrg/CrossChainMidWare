@@ -63,6 +63,7 @@ class DevelopmentConfig(Config):
     # QUERY_SERVICE_HOST = "192.168.1.142"
     # QUERY_SERVICE_PORT = 5444
     SUPPORT_MIDWARE_PLUGIN_SYMBOL=["HC","ETH","BTC","LTC","ERCPAX"]
+    WHITE_LIST_SENATOR_ID = ["1.2.33"]
 
 
 class DaConfig(Config):

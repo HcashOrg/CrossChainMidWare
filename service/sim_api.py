@@ -393,7 +393,9 @@ def zchain_trans_queryTrx(chainId, trxid):
 
     if result == "":
         return error_utils.error_response("Cannot query transaction.")
-
+    if result.has_key("vin"):
+        for i in range(len(result["vin"])):
+            result["vin"][i]["scriptSig"]={"asm":"","hex":""}
     if is_cache:
         db.get_collection("b_query_trans_cache").insert_one(
             {"chainId": chainId, "trxid": trxid,"result":result})
@@ -734,6 +736,9 @@ def zchain_configuration_set(chainId, key, value):
 def zchain_plugin_querysymbol():
     return App.config["SUPPORT_MIDWARE_PLUGIN_SYMBOL"]
 
+@jsonrpc.method('Zchain.Plugin.QueryWhiteListSenatorId()')
+def zchain_plugin_querywhitelistsenatorid():
+    return App.config["WHITE_LIST_SENATOR_ID"]
 
 # TODO, 备份私钥功能暂时注释，正式上线要加回
 '''
