@@ -376,10 +376,24 @@ def zchain_trans_queryTrx(chainId, trxid):
         result = sim_btc_plugin[chainId].sim_btc_get_transaction(trxid)
         if "vout" in result:
             is_cache = True
+            try:
+                if "confirmations" in result:
+                    if result["confirmations"]<=0:
+                        is_cache = False
+            except Exception,ex:
+                print "query confirmation failed",ex
+
     elif chainId == "hc":
         result = hc_plugin.hc_get_transaction(trxid)
         if "vout" in result:
             is_cache = True
+            try:
+                if "vin" in result and len(result["vin"]) > 0:
+                    if result["vin"][0]["blockheight"] <= 0:
+                        is_cache = False
+            except Exception,ex:
+                print "query confirmation failed",ex
+
 
     elif chainId == "eth" or "erc" in chainId:
         source,respit = eth_utils.get_transaction_data(trxid)
@@ -424,10 +438,23 @@ def zchain_trans_queryTrx(chainId, trxids):
             result = sim_btc_plugin[chainId].sim_btc_get_transaction(one_txid)
             if "vout" in result:
                 is_cache = True
+                try:
+                    if "confirmations" in result:
+                        if result["confirmations"] <= 0:
+                            is_cache = False
+                except Exception, ex:
+                    print "query confirmation failed", ex
+
         elif chainId == "hc":
             result = hc_plugin.hc_get_transaction(one_txid)
             if "vout" in result:
                 is_cache = True
+                try:
+                    if "vin" in result and len(result["vin"]) > 0:
+                        if result["vin"][0]["blockheight"] <= 0:
+                            is_cache = False
+                except Exception, ex:
+                    print "query confirmation failed", ex
 
         elif chainId == "eth" or "erc" in chainId:
             source,respit = eth_utils.get_transaction_data(one_txid)
