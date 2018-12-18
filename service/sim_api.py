@@ -372,12 +372,6 @@ def zchain_trans_queryTrx(chainId, trxid):
         'chainId': chainId,
         'data': cache_record["result"]
         }
-    if trxid=="123456789":
-        data ={ "vout" : [ { "scriptPubKey" : { "reqSigs" : 1, "hex" : "76a9149bac437aa393bbf35585c6294efc0fda284547e088ac", "addresses" : [ "HsRqTjo3QmmmuhojBeb86YSnQDn6jJdhge3" ], "asm" : "OP_DUP OP_HASH160 9bac437aa393bbf35585c6294efc0fda284547e0 OP_EQUALVERIFY OP_CHECKSIG", "type" : "pubkeyhash" }, "version" : 0, "value" : 0.0069778, "n" : 0 }, { "scriptPubKey" : { "reqSigs" : 1, "hex" : "a914347f35722b575a244798fb1ab0b03ea4584ca81487", "addresses" : [ "HcNvbjZ8fsRU1tWroHvUsbq8Xjaa8ZY56xr" ], "asm" : "OP_HASH160 347f35722b575a244798fb1ab0b03ea4584ca814 OP_EQUAL", "type" : "scripthash" }, "version" : 0, "value" : 105.29, "n" : 1 } ], "vin" : [ { "scriptSig" : { "hex" : "47304402200d4b97cf07d485c2e4e2863c788933b7abfcdee9409b699c336d59114d01b97002207c97e5f05a9c5651d6bc915156d237efb8f40def1d407a164d2c548ea7b64699012103afba90812c9c8f37b466ba0b866e6a0f3a847cc1c7474e21703da284f20135d9", "asm" : "304402200d4b97cf07d485c2e4e2863c788933b7abfcdee9409b699c336d59114d01b97002207c97e5f05a9c5651d6bc915156d237efb8f40def1d407a164d2c548ea7b6469901 03afba90812c9c8f37b466ba0b866e6a0f3a847cc1c7474e21703da284f20135d9" }, "vout" : 0, "sequence" : "4294967295", "blockindex" : 2, "tree" : 0, "txid" : "95ff3166e2cd5f65e21106bc5196bd9e4dc5df4e3e3904542bbd638694806432", "blockheight" : 60324, "amountin" : 0.0069778 }, { "scriptSig" : { "hex" : "473044022002c266733e3adc78eaa260c2eff22c75dcc4a7ceb4a89a5fef41cf3c0aedb034022076c2f2998c4576d8a1208beab27648dfc5fbfd8ed2bf98ca8a569912e901d5e9012103afba90812c9c8f37b466ba0b866e6a0f3a847cc1c7474e21703da284f20135d9", "asm" : "3044022002c266733e3adc78eaa260c2eff22c75dcc4a7ceb4a89a5fef41cf3c0aedb034022076c2f2998c4576d8a1208beab27648dfc5fbfd8ed2bf98ca8a569912e901d5e901 03afba90812c9c8f37b466ba0b866e6a0f3a847cc1c7474e21703da284f20135d9" }, "vout" : 1,  "blockindex" : 1, "tree" : 0, "txid" : "e7d6b55683903c87959fca43a9e7b4c2e177c1b61f9e2840cd1400ba049e3236", "blockheight" : 60477, "amountin" : 105.3 } ], "expiry" : 0, "version" : 1, "locktime" : 0, "txid" : "2abc967c3d85d5933eba69d4b3dddb3fd4319d22d5e95c1b4425ccb63cb7893a" }
-        return {
-            'chainId': chainId,
-            'data': data
-        }
     if sim_btc_plugin.has_key(chainId):
         result = sim_btc_plugin[chainId].sim_btc_get_transaction(trxid)
         if "vout" in result:
