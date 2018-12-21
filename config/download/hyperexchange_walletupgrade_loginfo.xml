@@ -1,4 +1,4 @@
-v1.2.2
+v1.2.3
 1. optimize Interaction with Middleware
 2. increase shutdown and startup speed
 3. support batch operation when pledge and foreclose
