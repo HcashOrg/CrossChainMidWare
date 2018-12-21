@@ -1,3 +1,12 @@
+v1.2.2
+1. optimize Interaction with Middleware
+2. increase shutdown and startup speed
+3. support batch operation when pledge and foreclose
+4. fix some other bugs
+
+If you upgrade to this version, your wallet will replay the chain data. This will take you a few minutes.
+
+
 v1.2.1
 1. now wallet will be launched faster
 2. reduce the frequency of accessing Middleware
@@ -5,9 +14,6 @@ v1.2.1
 4. now you can add some favorite pairs in order center
 5. now you can select the appropriate gas price when you allot ETH or ERC assets
 6. fix some bugs
-
-All users must upgrade to this version.
-If you upgrade to this version, your wallet will replay the chain data. This will take you a few minutes.
 
 
 v1.2.0
