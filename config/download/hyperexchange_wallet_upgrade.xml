@@ -2,7 +2,7 @@
 <Info>
     <Version>1.2.3</Version>
     <update>1.2.3</update>
-	<ForceUpdate>true</ForceUpdate>
+	<ForceUpdate>false</ForceUpdate>
     <UpdateServer>http://36.152.8.188:8787/download/win</UpdateServer>
     <MainFiles>
 		<File>
