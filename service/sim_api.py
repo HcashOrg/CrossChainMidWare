@@ -226,6 +226,12 @@ def zchain_query_getBlockHeight(chainId):
         result = eth_utils.eth_get_block_height()
     elif 'eth' == chainId:
         result = eth_utils.eth_get_block_height()
+    elif 'hc' == chainId:
+        cache_record = db.get_collection("b_config").find_one({"key" : "hcsyncblocknum"})
+        if cache_record is not None:
+            result = int(cache_record["value"])
+        else:
+            result=0
     else:
         return error_utils.invalid_chainid_type()
     if result == {}:

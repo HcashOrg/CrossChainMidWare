@@ -1,3 +1,12 @@
+v1.2.4
+1 optimize the interface of contract
+2 generate .dmp file when the wallet crashed on windows
+3 fix a bug of ETH withdrawal
+4 page of contract token will be displayed faster
+5 fix some other bugs
+
+All users must upgrade to this version.
+
 v1.2.3
 1. optimize Interaction with Middleware
 2. increase shutdown and startup speed
