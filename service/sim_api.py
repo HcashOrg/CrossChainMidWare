@@ -227,7 +227,7 @@ def zchain_addr_importaddr(chainId, addr):
                     db.b_eths_address.update({'chainId': chainId, 'address': handle_addr},
                                              {"$set": {'isContractAddress': True}})
             else:
-                asset = db.b_eths_address.find_one({'chainId': chainId, 'address': handle_addr})
+                asset = db.b_eths_address.find_one({'chainId': chainId, 'address': addr})
                 if asset == None:
                     db.b_eths_address.insert(
                         {'chainId': chainId, 'address': addr, 'isContractAddress': False})
