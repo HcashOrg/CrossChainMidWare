@@ -128,7 +128,62 @@ def zchain_trans_broadcastTrx(chainId, trx):
         'data': result
     }
 
-
+@jsonrpc.method('Zchain.Addr.importAddrs(chainId=str,addrs=list)')
+def zchain_addr_import_addrs(chainId,addrs):
+    logger.info('Zchain.Addr.importAddrs')
+    if type(chainId) != unicode:
+        return error_utils.mismatched_parameter_type('chainId', 'STRING')
+    for addr in addrs:
+        if chainId.lower() == 'eth':
+            if "erc" in addr:
+                temp_chainId = chainId.lower()
+                pos = addr.find("erc")
+                handle_addr = addr[0:pos]
+                asset = db.b_eths_address.find_one({'chainId': temp_chainId, 'address': handle_addr})
+                if asset == None:
+                    db.b_eths_address.insert({'chainId': temp_chainId, 'address': handle_addr, 'isContractAddress': True})
+                else:
+                    db.b_eths_address.update({'chainId': temp_chainId, 'address': handle_addr},
+                                             {"$set": {'isContractAddress': True}})
+            else:
+                temp_chainId = chainId.lower()
+                asset = db.b_eths_address.find_one({'chainId': temp_chainId, 'address': addr})
+                if asset == None:
+                    db.b_eths_address.insert({'chainId': temp_chainId, 'address': addr, 'isContractAddress': False})
+                else:
+                    db.b_eths_address.update({'chainId': temp_chainId, 'address': addr},
+                                             {"$set": {'isContractAddress': False}})
+            eth_utils.add_guard_address(addr)
+        elif ('erc' in chainId.lower()):
+            erc_asset = None
+            if erc_chainId_map.has_key(chainId):
+                erc_asset = erc_chainId_map[chainId]
+            if erc_asset != None:
+                if "erc" in addr:
+                    pos = addr.find("erc")
+                    handle_addr = addr[0:pos]
+                    asset = db.b_eths_address.find_one({'chainId': chainId, 'address': handle_addr})
+                    if asset == None:
+                        db.b_eths_address.insert(
+                            {'chainId': chainId, 'address': handle_addr, 'isContractAddress': True})
+                    else:
+                        db.b_eths_address.update({'chainId': chainId, 'address': handle_addr},
+                                                 {"$set": {'isContractAddress': True}})
+                else:
+                    asset = db.b_eths_address.find_one({'chainId': chainId, 'address': handle_addr})
+                    if asset == None:
+                        db.b_eths_address.insert(
+                            {'chainId': chainId, 'address': addr, 'isContractAddress': False})
+                    else:
+                        db.b_eths_address.update({'chainId': chainId, 'address': addr},
+                                                 {"$set": {'isContractAddress': False}})
+                eth_utils.add_guard_address(addr)
+        else:
+            return error_utils.invalid_chainid_type()
+    return {
+        'chainId': chainId,
+        'data': ""
+    }
 @jsonrpc.method('Zchain.Addr.importAddr(chainId=str, addr=str)')
 def zchain_addr_importaddr(chainId, addr):
     logger.info('Zchain.Addr.importAddr')
@@ -164,9 +219,21 @@ def zchain_addr_importaddr(chainId, addr):
             if "erc" in addr:
                 pos = addr.find("erc")
                 handle_addr = addr[0:pos]
-                db.b_eths_address.insert({'chainId': chainId, 'address': handle_addr, 'isContractAddress': True})
+                asset = db.b_eths_address.find_one({'chainId': chainId, 'address': handle_addr})
+                if asset == None:
+                    db.b_eths_address.insert(
+                        {'chainId': chainId, 'address': handle_addr, 'isContractAddress': True})
+                else:
+                    db.b_eths_address.update({'chainId': chainId, 'address': handle_addr},
+                                             {"$set": {'isContractAddress': True}})
             else:
-                db.b_eths_address.insert({'chainId': chainId, 'address': addr, 'isContractAddress': False})
+                asset = db.b_eths_address.find_one({'chainId': chainId, 'address': handle_addr})
+                if asset == None:
+                    db.b_eths_address.insert(
+                        {'chainId': chainId, 'address': addr, 'isContractAddress': False})
+                else:
+                    db.b_eths_address.update({'chainId': chainId, 'address': addr},
+                                             {"$set": {'isContractAddress': False}})
             eth_utils.add_guard_address(addr)
     else:
         return error_utils.invalid_chainid_type()
