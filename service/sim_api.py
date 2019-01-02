@@ -134,7 +134,11 @@ def zchain_addr_import_addrs(chainId,addrs):
     if type(chainId) != unicode:
         return error_utils.mismatched_parameter_type('chainId', 'STRING')
     for addr in addrs:
-        if chainId.lower() == 'eth':
+        if sim_btc_plugin.has_key(chainId):
+            sim_btc_plugin[chainId].sim_btc_import_addr(addr)
+        elif chainId == "hc":
+            hc_plugin.hc_import_addr(addr)
+        elif chainId.lower() == 'eth':
             if "erc" in addr:
                 temp_chainId = chainId.lower()
                 pos = addr.find("erc")
