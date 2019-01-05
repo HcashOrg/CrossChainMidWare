@@ -552,6 +552,9 @@ def zchain_trans_queryTrx(chainId, trxids):
             db.get_collection("b_query_trans_cache").insert_one(
                 {"chainId": chainId, "trxid": one_txid,"result":result})
         res_data[one_txid] = result
+    if len(res_data)<len(trxids):
+        for i in range(len(trxids)-len(res_data)):
+            res_data["000000"+str(i)]=i
     return {
         'chainId': chainId,
         'data': res_data
