@@ -1,9 +1,19 @@
+v1.2.6
+1 add new ERC20 token ELF
+2 add checkpoint function
+3 fix querytrans bug
+4 optimize "importAddr"
+5 fix some other bugs
+
+All users must upgrade to this version.
+If you upgrade to this version, your wallet will replay the chain data. This will take you a few minutes.
+
+
 v1.2.5
 1 improve node performance
 2 optimize rpc priority
 3 fix some other bugs
 
-All users must upgrade to this version.
 
 v1.2.4
 1 optimize the interface of contract
@@ -12,13 +22,13 @@ v1.2.4
 4 page of contract token will be displayed faster
 5 fix some other bugs
 
+
 v1.2.3
 1. optimize Interaction with Middleware
 2. increase shutdown and startup speed
 3. support batch operation when pledge and foreclose
 4. fix some other bugs
 
-If you upgrade to this version, your wallet will replay the chain data. This will take you a few minutes.
 
 
 v1.2.1
