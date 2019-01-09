@@ -14,7 +14,7 @@ ercpax_info = {
 ercelf_info = {
     "precison" : "18",
     "chainId" : "ERCELF",
-    "address" : "0xbf2179859fc6D5BEE9Bf9158632Dc51678a4100e"
+    "address" : "0xbf2179859fc6d5bee9bf9158632dc51678a4100e"
 }
 
 erc_map = {}
