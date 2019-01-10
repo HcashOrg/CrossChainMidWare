@@ -1,3 +1,6 @@
+v1.2.7
+1 fix ELF transfer bug
+
 v1.2.6
 1 add new ERC20 token ELF
 2 add checkpoint function
