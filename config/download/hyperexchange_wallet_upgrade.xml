@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Info>
-    <Version>1.2.8</Version>
-    <update>1.2.8</update>
-	<ForceUpdate>false</ForceUpdate>
-	<MinimalVersion>1.2.6</MinimalVersion>
+    <Version>1.2.9</Version>
+    <update>1.2.9</update>
+	<ForceUpdate>true</ForceUpdate>
+	<MinimalVersion>1.2.9</MinimalVersion>
     <UpdateServer>http://36.152.8.188:8787/download/win</UpdateServer>
     <MainFiles>
 		<File>
             <Name>hyperexchange.zip</Name>
-            <LatestVer>1.2.8</LatestVer>
+            <LatestVer>1.2.9</LatestVer>
         </File>		
     </MainFiles>
     <UpdateFiles>
