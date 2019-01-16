@@ -1,7 +1,15 @@
+v1.2.10
+1 fix a bug of fee acceptance
+2 fix a bug when new user login first time
+3 fix a bug of ETH crosschain withdraw block
+4 fix some other bugs
+
+All users must upgrade to this version.
+
+
 v1.2.9
 1 fix a deposit bug
 
-All users must upgrade to this version.
 If you upgrade to this version, your wallet will replay the chain data. This will take you a few minutes.
 
 
