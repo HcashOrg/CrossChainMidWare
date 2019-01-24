@@ -129,6 +129,8 @@ class sim_btc_utils:
         if resp.has_key("result") and resp["result"] != None:
             trx_unspent = resp["result"]
             for tx in trx_unspent:
+                if tx is None:
+                    continue
                 result.append({"amount":tx["value"],"txid":tx["txid"],"vout":tx["vout"],"scriptPubKey":tx["scriptPubKey"]})
         return result
 
