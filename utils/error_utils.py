@@ -31,7 +31,8 @@ def invaild_eth_address(address):
 
 def empty_cash_sweep_id():
     return error_response(u'opId is empty', 40008)
-
+def hasnokey_parameter_type(v, t):
+    return error_response(u'%s should be stored in %s.' % (v, t), 40009)
 def unexcept_error(ex):
     return error_response('chain happend unexcept error %s'%ex,49999)
 

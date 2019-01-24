@@ -917,7 +917,7 @@ def zchain_address_create(chainId):
 @jsonrpc.method('Zchain.Withdraw.GetInfo(chainId=str)')
 def zchain_withdraw_getinfo(chainId):
     """
-    查询提现账户的信�?
+    查询提现账户的信息
     :param chainId:
     :return:
     """
@@ -1007,3 +1007,56 @@ def zchain_address_get_balance(chainId, addr):
         'address': addr,
         'balance': balance
     }
+@jsonrpc.method('Zchain.Transaction.All.History( param=list )')
+def zchain_transaction_all_history(param):
+    ret = []
+    for item in param:
+        try:
+            ret_list = []
+            ret_temp = {}
+            chainId = item.get('chainId')
+            account = item.get('account')
+            blockNum = item.get('blockNum')
+            limit = item.get('limit')
+            if chainId == None:
+               continue
+            if account == None:
+                continue
+            if blockNum == None:
+                continue
+            if limit == None:
+                continue
+            chainIdLower = chainId.lower()
+            if type(chainIdLower) != unicode:
+                continue
+            ret_temp['chainId'] = chainId
+            deposit_trxs = zchain_transaction_deposit_history(chainId, account, blockNum, limit)
+            #print deposit_trxs
+            withdraw_trxs = zchain_transaction_withdraw_history(chainId, account, blockNum, limit)
+            #print withdraw_trxs
+            if ('eth' == chainIdLower) or ('erc' in chainIdLower):
+                guardcall_trxs = zchain_transaction_guardcall_history(chainId,account,blockNum,limit)
+                if deposit_trxs.has_key('data'):
+                    ret_list.extend(deposit_trxs['data'])
+                if withdraw_trxs.has_key('data'):
+                    ret_list.extend(withdraw_trxs['data'])
+                if guardcall_trxs.has_key('data'):
+                    ret_list.extend(guardcall_trxs['data'])
+                deposit_blocknum = deposit_trxs.get('blockNum', 0)
+                withdraw_blocknum = withdraw_trxs.get('blockNum', 0)
+                guardcall_blocknum = guardcall_trxs.get('blockNum', 0)
+                ret_temp['blockNum'] = max(deposit_blocknum, withdraw_blocknum,guardcall_blocknum)
+            else:
+                if deposit_trxs.has_key('data'):
+                    ret_list.extend(deposit_trxs['data'])
+                if withdraw_trxs.has_key('data'):
+                    ret_list.extend(withdraw_trxs['data'])
+                deposit_blocknum = deposit_trxs.get('blockNum', 0)
+                withdraw_blocknum = withdraw_trxs.get('blockNum', 0)
+                ret_temp['blockNum'] = max(deposit_blocknum, withdraw_blocknum)
+            ret_temp['data'] = ret_list
+            ret.append(ret_temp)
+        except Exception, ex:
+            print ex
+            continue
+    return ret
