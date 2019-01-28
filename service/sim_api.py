@@ -402,7 +402,6 @@ def zchain_trans_CombineTrx(chainId, transactions):
     chainId = chainId.lower()
     if type(chainId) != unicode:
         return error_utils.mismatched_parameter_type('chainId', 'STRING')
-
     result = ""
     if sim_btc_plugin.has_key(chainId):
         result = sim_btc_plugin[chainId].sim_btc_combine_trx(transactions)
@@ -549,7 +548,9 @@ def zchain_trans_queryTrx(chainId, trxids):
                             is_cache = False
                 except Exception, ex:
                     print "query confirmation failed", ex
-
+        elif chainId == "usdt":
+            result = usdt_plugin.omni_get_transaction(one_txid)
+            print result
         elif chainId == "eth" or "erc" in chainId:
             source,respit = eth_utils.get_transaction_data(one_txid)
             so_re_dic = {'source_trx':source,'respit_trx':respit}

@@ -109,11 +109,17 @@ class usdt_utils:
         return ""
 
     def omni_get_transaction(self, trxid):
-        omni_resp = self.http_request("omni_gettransaction", [trxid])
-        if omni_resp["result"] != None:
-            return {"omni":omni_resp["result"]}
-
+        resp = self.http_request("getrawtransaction", [trxid, 1])
+        if resp["result"] != None:
+            omni_resp = self.http_request("omni_gettransaction", [trxid])
+            if omni_resp["result"] != None:
+                resp["result"]["omni"] =omni_resp["result"]
+                return resp["result"]
+            else:
+                return resp["result"]
+        #print resp
         return ""
+
 
     def omni_import_addr(self, addr):
         self.http_request("importaddress", [addr, "", False])
