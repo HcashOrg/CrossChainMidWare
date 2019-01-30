@@ -1,3 +1,11 @@
+v1.2.11
+1 optimize node performance
+2 lock position contract
+3 fix some other bugs
+
+All users must upgrade to this version.
+
+
 v1.2.10
 1 fix a bug of fee acceptance
 2 fix a bug when new user login first time
