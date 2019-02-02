@@ -882,9 +882,9 @@ bak_white_list_datas= []
 @jsonrpc.method('Zchain.Plugin.QueryWhiteListSenatorId()')
 def zchain_plugin_querywhitelistsenatorid():
     global  bak_white_list_time,bak_white_list_datas
-    if time.time()-bak_white_list_time>50:
+    if time.time()-bak_white_list_time>60:
         bak_white_list_time=time.time()
-        file = open("config/white_list_ids.json","r")
+        file = open(App.config["WHITE_LIST_FILE_PATH"],"r")
 
         data_strs= file.readlines()
         file.close()
