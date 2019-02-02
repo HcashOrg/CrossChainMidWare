@@ -39,6 +39,7 @@ if (db.auth("dbAdmin", "admin12#$%") != 1) {
     db.createCollection("b_verify_cache");
     db.createCollection("b_query_trans_cache");
     db.createCollection("b_broadcast_trans_cache");
+    db.createCollection("b_usdt_multisig_address");
     db.b_eths_address.ensureIndex({"chainId": 1, "address": 1}, {"unique": true});
     db.b_chain_account.ensureIndex({"chainId": 1, "address": 1}, {"unique": true});
     db.b_balance_unspent.ensureIndex({"chainId": 1, "address": 2});

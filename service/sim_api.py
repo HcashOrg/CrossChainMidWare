@@ -876,9 +876,27 @@ def zchain_configuration_set(chainId, key, value):
 def zchain_plugin_querysymbol():
     return App.config["SUPPORT_MIDWARE_PLUGIN_SYMBOL"]
 
+bak_white_list_time = 0
+bak_white_list_datas= []
+
 @jsonrpc.method('Zchain.Plugin.QueryWhiteListSenatorId()')
 def zchain_plugin_querywhitelistsenatorid():
-    return App.config["WHITE_LIST_SENATOR_ID"]
+    global  bak_white_list_time,bak_white_list_datas
+    if time.time()-bak_white_list_time>50:
+        bak_white_list_time=time.time()
+        file = open("config/white_list_ids.json","r")
+
+        data_strs= file.readlines()
+        file.close()
+        for one_line in data_strs:
+            if len(one_line) ==0:
+                continue
+            if one_line[0]=="#" or one_line =="":
+                continue
+            datas = json.loads(one_line)
+            break
+        bak_white_list_datas = datas
+    return bak_white_list_datas
 
 # TODO, 备份私钥功能暂时注释，正式上线要加回
 '''

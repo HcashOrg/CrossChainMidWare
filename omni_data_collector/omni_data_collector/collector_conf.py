@@ -25,16 +25,16 @@ class CollectorConfig(object):
 
 class USDTCollectorConfig(CollectorConfig):
     ASSET_SYMBOL = "USDT"
-    RPC_HOST = '192.168.1.124'
-    RPC_PORT = 10009
+    RPC_HOST = 'usdt_wallet'
+    RPC_PORT = 60013
     SYNC_STATE_FIELD = "usdtsyncstate"
     SYNC_BLOCK_NUM = "usdtsyncblocknum"
     SAFE_BLOCK_FIELD = "usdtsafeblock"
-    RPC_USER ="test"
-    RPC_PASSWORD="test"
+    RPC_USER ="a"
+    RPC_PASSWORD="b"
     MULTISIG_VERSION = 196
     COLLECT_THREAD = 5
-    PROPERTYID = 2
+    PROPERTYID = 31
 
 
 
