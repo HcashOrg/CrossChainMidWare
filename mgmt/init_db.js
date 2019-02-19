@@ -143,7 +143,17 @@ if (db.auth("dbAdmin", "admin12#$%") != 1) {
         'key': 'etpsafeblock',
         'value': '6'
     });
-
-
+    db.b_config.insert({
+        'key': 'usdtsafeblock',
+        'value': '6'
+    });
+    db.b_config.insert({
+        'key': 'usdtsyncblocknum',
+        'value': '563600'
+    });
+    db.b_config.insert({
+        'key': 'usdtsyncstate',
+        'value': '0'
+    });
 }
 
