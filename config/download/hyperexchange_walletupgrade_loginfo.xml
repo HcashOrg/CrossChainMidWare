@@ -1,9 +1,15 @@
+v1.2.12
+1 add a new coin USDT
+2 fix a crash bug
+3 fix some other bugs
+
+All users must upgrade to this version.
+
+
 v1.2.11
 1 optimize node performance
 2 lock position contract
 3 fix some other bugs
-
-All users must upgrade to this version.
 
 
 v1.2.10
@@ -11,8 +17,6 @@ v1.2.10
 2 fix a bug when new user login first time
 3 fix a bug of ETH crosschain withdraw block
 4 fix some other bugs
-
-All users must upgrade to this version.
 
 
 v1.2.9
