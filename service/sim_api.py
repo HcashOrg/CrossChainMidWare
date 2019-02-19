@@ -874,7 +874,7 @@ def zchain_transaction_deposit_history(chainId,account ,blockNum, limit):
         current_block_num = int(db.b_config.find_one({"key": current_block_info[chainId]})["value"])
     trxs = []
     for i in range(((current_block_num - blockNum) / dep_num) + 1):
-        depositTrxs = db.b_deposit_transaction.find({"chainId": chainId, "blockNum": {"$gte": blockNum}}, {"_id": 0}).sort(
+        depositTrxs = db.b_deposit_transaction.find({"chainId": chainId, "blockNum": {"$gte": blockNum+i*1000,"$lte":blockNum+(i+1)*1000}}, {"_id": 0}).sort(
             "blockNum", pymongo.DESCENDING)
         trxs.extend(list(depositTrxs))
         if len(trxs) > 0:
