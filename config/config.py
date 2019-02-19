@@ -69,7 +69,7 @@ class DevelopmentConfig(Config):
     USDT_PROPERTYID = 31
     # QUERY_SERVICE_HOST = "192.168.1.142"
     # QUERY_SERVICE_PORT = 5444
-    SUPPORT_MIDWARE_PLUGIN_SYMBOL=["HC","ETH","BTC","LTC","ERCPAX","ERCELF"]
+    SUPPORT_MIDWARE_PLUGIN_SYMBOL=["HC","ETH","BTC","LTC","ERCPAX","ERCELF","USDT"]
     WHITE_LIST_SENATOR_ID = ["1.2.290","1.2.1294","1.2.1165","1.2.1124","1.2.1561","1.2.1237"]
     WHITE_LIST_FILE_PATH = "/hx/crosschain_midware/config/white_list_ids.json"
 
