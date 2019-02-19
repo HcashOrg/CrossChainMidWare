@@ -469,8 +469,10 @@ def zchain_trans_queryTrx(chainId, trxid):
             is_cache = True
             try:
                 if "confirmations" in result:
-                    if result["confirmations"]<=0:
+                    if result["confirmations"]<=7:
                         is_cache = False
+                else:
+                    is_cache = False
             except Exception,ex:
                 print "query confirmation failed",ex
 
@@ -486,6 +488,16 @@ def zchain_trans_queryTrx(chainId, trxid):
                 print "query confirmation failed",ex
     elif chainId == "usdt":
         result = usdt_plugin.omni_get_transaction(trxid)
+        if "vout" in result:
+            is_cache = True
+            try:
+                if "confirmations" in result:
+                    if result["confirmations"] <= 7:
+                        is_cache = False
+                else:
+                    is_cache = False
+            except Exception, ex:
+                print "query confirmation failed", ex
 
 
     elif chainId == "eth" or "erc" in chainId:

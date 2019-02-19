@@ -38,7 +38,7 @@ class DevelopmentConfig(Config):
     ETH_PORT = 5544
     ETH_FEE = 0.002
     ETH_Minimum = 0.5
-    VIN_SIZE = 1800
+    VIN_SIZE = 1600
     VOUT_SIZE = 80
     BTC_HOST = 'btc_wallet'
     BTC_PORT = 60011
