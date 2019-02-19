@@ -17,6 +17,13 @@ import leveldb
 import time
 import hashlib
 last_clean_broadcast_cache_time = time.time()
+current_block_info = {
+    "eth" : "syncblocknum",
+    "btc" : "btcsyncblocknum",
+    "ltc" : "ltcsyncblocknum",
+    "hc": "hcsyncblocknum",
+    "usdt":"usdtsyncblocknum",
+}
 
 
 @jsonrpc.method('Zchain.Crypt.Sign(chainId=str, addr=str, message=str)')
@@ -786,7 +793,6 @@ def zchain_transaction_guardcall_history(chainId,account ,blockNum, limit):
         return error_utils.mismatched_parameter_type('blockNum', 'INTEGER')
     if type(limit) != int:
         return error_utils.mismatched_parameter_type('limit', 'INTEGER')
-
     guardcallTrxs = db.b_guardcall_transaction.find({"chainId": chainId, "blockNum": {"$gte": blockNum}}, {"_id": 0}).sort(
         "blockNum", pymongo.DESCENDING)
     trxs = list(guardcallTrxs)
@@ -818,9 +824,20 @@ def zchain_transaction_withdraw_history(chainId,account ,blockNum, limit):
         return error_utils.mismatched_parameter_type('blockNum', 'INTEGER')
     if type(limit) != int:
         return error_utils.mismatched_parameter_type('limit', 'INTEGER')
-
-    withdrawTrxs = db.b_withdraw_transaction.find({"chainId": chainId, "blockNum": {"$gte": blockNum}}, {"_id": 0}).sort(
-        "blockNum", pymongo.DESCENDING)
+    current_block_num = 0
+    dep_num = 1000
+    if chainId == "eth" or "erc" in chainId:
+        current_block_num = db.b_config.find({"key":current_block_info["eth"]})["value"]
+        dep_num = 10000
+        if blockNum == 0:
+            blockNum = 6500000
+    elif current_block_info.has_key(chainId):
+        current_block_num = db.b_config.find({"key": current_block_info[chainId]})["value"]
+    for i in range(((current_block_num-blockNum)/dep_num)+1):
+        withdrawTrxs = db.b_withdraw_transaction.find({"chainId": chainId, "blockNum": {"$gte": blockNum+i*1000,"$lte":blockNum+(i+1)*1000}}, {"_id": 0}).sort(
+            "blockNum", pymongo.DESCENDING)
+        if len(list(withdrawTrxs)) > 0:
+            break
     trxs = list(withdrawTrxs)
     if len(trxs) == 0:
         blockNum = 0
@@ -845,9 +862,20 @@ def zchain_transaction_deposit_history(chainId,account ,blockNum, limit):
         return error_utils.mismatched_parameter_type('blockNum', 'INTEGER')
     if type(limit) != int:
         return error_utils.mismatched_parameter_type('limit', 'INTEGER')
-
-    depositTrxs = db.b_deposit_transaction.find({"chainId": chainId, "blockNum": {"$gte": blockNum}}, {"_id": 0}).sort(
-        "blockNum", pymongo.DESCENDING)
+    current_block_num = 0
+    dep_num = 1000
+    if chainId == "eth" or "erc" in chainId:
+        current_block_num = db.b_config.find({"key": current_block_info["eth"]})["value"]
+        dep_num = 10000
+        if blockNum == 0:
+            blockNum = 6500000
+    elif current_block_info.has_key(chainId):
+        current_block_num = db.b_config.find({"key": current_block_info[chainId]})["value"]
+    for i in range(((current_block_num - blockNum) / dep_num) + 1):
+        depositTrxs = db.b_deposit_transaction.find({"chainId": chainId, "blockNum": {"$gte": blockNum}}, {"_id": 0}).sort(
+            "blockNum", pymongo.DESCENDING)
+        if len(list(depositTrxs)) == 0:
+            break
     trxs = list(depositTrxs)
     if len(trxs) == 0:
         blockNum = 0
