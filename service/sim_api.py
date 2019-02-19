@@ -827,12 +827,12 @@ def zchain_transaction_withdraw_history(chainId,account ,blockNum, limit):
     current_block_num = 0
     dep_num = 1000
     if chainId == "eth" or "erc" in chainId:
-        current_block_num = int(db.b_config.find({"key":current_block_info["eth"]})["value"])
+        current_block_num = int(db.b_config.find_one({"key":current_block_info["eth"]})["value"])
         dep_num = 10000
         if blockNum == 0:
             blockNum = 6500000
     elif current_block_info.has_key(chainId):
-        current_block_num = int(db.b_config.find({"key": current_block_info[chainId]})["value"])
+        current_block_num = int(db.b_config.find_one({"key": current_block_info[chainId]})["value"])
     for i in range(((current_block_num-blockNum)/dep_num)+1):
         withdrawTrxs = db.b_withdraw_transaction.find({"chainId": chainId, "blockNum": {"$gte": blockNum+i*1000,"$lte":blockNum+(i+1)*1000}}, {"_id": 0}).sort(
             "blockNum", pymongo.DESCENDING)
@@ -865,12 +865,12 @@ def zchain_transaction_deposit_history(chainId,account ,blockNum, limit):
     current_block_num = 0
     dep_num = 1000
     if chainId == "eth" or "erc" in chainId:
-        current_block_num = int(db.b_config.find({"key": current_block_info["eth"]})["value"])
+        current_block_num = int(db.b_config.find_one({"key": current_block_info["eth"]})["value"])
         dep_num = 10000
         if blockNum == 0:
             blockNum = 6500000
     elif current_block_info.has_key(chainId):
-        current_block_num = int(db.b_config.find({"key": current_block_info[chainId]})["value"])
+        current_block_num = int(db.b_config.find_one({"key": current_block_info[chainId]})["value"])
     for i in range(((current_block_num - blockNum) / dep_num) + 1):
         depositTrxs = db.b_deposit_transaction.find({"chainId": chainId, "blockNum": {"$gte": blockNum}}, {"_id": 0}).sort(
             "blockNum", pymongo.DESCENDING)
