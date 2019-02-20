@@ -33,7 +33,7 @@ class USDTCollectorConfig(CollectorConfig):
     RPC_USER ="a"
     RPC_PASSWORD="b"
     MULTISIG_VERSION = 196
-    COLLECT_THREAD = 5
+    COLLECT_THREAD = 1
     PROPERTYID = 31
 
 
