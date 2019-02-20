@@ -154,7 +154,7 @@ class CollectBlockThread(threading.Thread):
                     print "waiting(10s) collector1 http rpc"
                     time.sleep(10)
                 else:
-                    time.sleep(1)
+                    time.sleep(10)
                 continue
             try:
                 # 获取当前链上最新块号
@@ -213,9 +213,9 @@ class CollectBlockThread(threading.Thread):
 
 
     def _get_latest_block_num(self):
-        ret = self.wallet_api.http_request("omni_getinfo", [])
+        ret = self.wallet_api.http_request("getblockcount", [])
         if ret.has_key("result"):
-            real_block_num = ret["result"].get('block', None)
+            real_block_num = ret["result"]
             if real_block_num is None:
                 return None
             safe_block = 6
