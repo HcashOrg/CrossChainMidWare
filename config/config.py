@@ -45,7 +45,7 @@ class DevelopmentConfig(Config):
     BTC_COLLECT_HOST = 'localhost'
     BTC_COLLECT_PORT = 5444
     BTC_FEE =0.001
-    BTC_PER_FEE = 0.00002
+    BTC_PER_FEE = 0.00004
     ETP_PORT = 8820
     ETP_URL = 'etp_wallet'
     LTC_HOST = 'ltc_wallet'
