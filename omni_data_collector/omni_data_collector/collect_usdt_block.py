@@ -329,12 +329,10 @@ class USDTCoinTxCollector(CoinTxCollector):
             if not base_trx_data.has_key("subsends"):
                 print "not has subsends", base_trx_data
                 return trx_data
-            index=0
             for data in base_trx_data["subsends"]:
                 if data["propertyid"] == target_property_id:
                     propertyId = data["propertyid"]
-                    value = float(base_trx_data["subsends"][index]["amount"])
-                index = index+1
+                    value = float(data["amount"])
         else:
             is_valid_tx = False
             return trx_data
