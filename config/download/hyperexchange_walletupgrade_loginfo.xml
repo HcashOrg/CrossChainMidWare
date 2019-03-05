@@ -1,9 +1,16 @@
+v1.2.14
+1 network optimized
+2 change contract storage format
+3 decentralized exchange released
+4 open special deposit channel
+
+All users must upgrade to this version.
+If you upgrade to this version, your wallet will replay the chain data. This will take you a few minutes.
+
 v1.2.12
 1 add a new coin USDT
 2 fix a crash bug
 3 fix some other bugs
-
-All users must upgrade to this version.
 
 
 v1.2.11
@@ -21,8 +28,6 @@ v1.2.10
 
 v1.2.9
 1 fix a deposit bug
-
-If you upgrade to this version, your wallet will replay the chain data. This will take you a few minutes.
 
 
 v1.2.8
