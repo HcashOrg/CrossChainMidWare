@@ -1,10 +1,14 @@
+v1.2.15
+1 fix a crash bug
+
+All users must upgrade to this version.
+
 v1.2.14
 1 network optimized
 2 change contract storage format
 3 decentralized exchange released
 4 open special deposit channel
 
-All users must upgrade to this version.
 If you upgrade to this version, your wallet will replay the chain data. This will take you a few minutes.
 
 v1.2.12
