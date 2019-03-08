@@ -1,3 +1,9 @@
+v1.2.16
+1 optimize the synchronization
+2 change the action when contract storage change from table to nil
+
+in case that the network connection num is still 0 or the block height is not increasing, please remove dir "blockchain" in chaindata path and restart hx-indicator
+
 v1.2.15
 1 fix a crash bug
 
