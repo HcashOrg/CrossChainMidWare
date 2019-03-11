@@ -143,6 +143,16 @@ class usdt_utils:
         else:
             return "0"
 
+    def floatToInt(self,f):
+        i = 0
+        if f > 0:
+            i = (f * 10 + 5) / 10
+        elif f < 0:
+            i = (f * 10 - 5) / 10
+        else:
+            i = 0
+        return int(i)
+
     def omni_create_transaction(self, from_addr, dest_info):
         txout = self.omni_get_trx_out(from_addr)
         omni_balance = self.omni_get_balance(from_addr)
@@ -200,7 +210,7 @@ class usdt_utils:
             logger.error("cal fee large than max fee!")
             return ""
         #add usdt payload vout
-        omni_payload = "%04x%04x%08x%016x"%(0,0,self.config["property_id"],int(amount*math.pow(10,8)))
+        omni_payload = "%04x%04x%08x%016x"%(0,0,self.config["property_id"],self.floatToInt(amount*math.pow(10,8)))
 
         if not has_546:
             cal_fee +=0.00000546
