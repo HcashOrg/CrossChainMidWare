@@ -30,6 +30,7 @@ import (
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"flag"
+	"strings"
 )
 
 var(
@@ -64,6 +65,42 @@ var(
 var ChainType = "BTC_TEST"
 
 
+func is_chain_btm() bool {
+	if len(ChainType) >= 3 && strings.ToUpper(ChainType[0:3]) == "BTM" {
+		return true
+	}
+	return false
+}
+
+func get_json_elem_tag_txs() string {
+	if is_chain_btm() {
+		return "transactions"
+	}
+	return "tx"
+}
+
+func get_json_elem_tag_txid() string {
+	if is_chain_btm() {
+		return "id"
+	}
+	return "txid"
+}
+
+func get_json_elem_tag_tx_vin() string {
+	if is_chain_btm() {
+		return "inputs"
+	}
+	return "vin"
+}
+
+func get_json_elem_tag_tx_vout() string {
+	if is_chain_btm() {
+		return "outputs"
+	}
+	return "vout"
+}
+
+
 func one_collect_data(data_chan chan map[int]simplejson.Json,height []int){
 	defer wg_collect.Done()
 	link_client := util.LinkClient{
@@ -74,49 +111,55 @@ func one_collect_data(data_chan chan map[int]simplejson.Json,height []int){
 	}
 
 	for _,once_height := range height{
-		param := make([]interface{},0)
-		param = append(param,once_height)
-		blockhash,_ := link_client.SafeLinkHttpFunc("getblockhash",&param ,config.RpcServerConfig.IsTls[ChainType]).Get("result").String()
-		param_getblock := make([]interface{},0)
-		param_getblock = append(param_getblock,blockhash)
-		if config.RpcServerConfig.IsOldFunctionLevel[ChainType]{
-
-			param_getblock = append(param_getblock,true)
-		}else{
-
-			param_getblock = append(param_getblock,2)
-		}
-
-		blockdata := link_client.SafeLinkHttpFunc("getblock",&param_getblock,config.RpcServerConfig.IsTls[ChainType] )
-		if config.RpcServerConfig.IsOldFunctionLevel[ChainType]{
-			tx_datas,_ := blockdata.Get("result").Get("tx").Array()
-			stx_datas,_ := blockdata.Get("result").Get("stx").Array()
-			tx_real_datas := make([]interface{},0,len(tx_datas)+len(stx_datas))
-			for _,txids := range tx_datas{
-				param_gettransaction := make([]interface{},0)
-				param_gettransaction = append(param_gettransaction,txids.(string))
-				param_gettransaction = append(param_gettransaction,2)
-				tx_data := link_client.SafeLinkHttpFunc("getrawtransaction",&param_gettransaction ,config.RpcServerConfig.IsTls[ChainType])
-				map_data,err := tx_data.Get("result").Map()
-				if err!=nil{
-					fmt.Println(err.Error())
-				}
-				tx_real_datas = append(tx_real_datas,map_data)
+		var blockdata *simplejson.Json
+		if !is_chain_btm() {
+			param := make([]interface{}, 0)
+			param = append(param, once_height)
+			blockhash, _ := link_client.SafeLinkHttpFunc("getblockhash", &param, config.RpcServerConfig.IsTls[ChainType]).Get("result").String()
+			param_getblock := make([]interface{}, 0)
+			param_getblock = append(param_getblock, blockhash)
+			if config.RpcServerConfig.IsOldFunctionLevel[ChainType] {
+				param_getblock = append(param_getblock, true)
+			} else {
+				param_getblock = append(param_getblock, 2)
 			}
 
-
-			for _,txids := range stx_datas{
-				param_gettransaction := make([]interface{},0)
-				param_gettransaction = append(param_gettransaction,txids.(string))
-				param_gettransaction = append(param_gettransaction,2)
-				tx_data := link_client.SafeLinkHttpFunc("getrawtransaction",&param_gettransaction,config.RpcServerConfig.IsTls[ChainType] )
-				map_data,err := tx_data.Get("result").Map()
-				if err!=nil{
-					fmt.Println(err.Error())
+			blockdata = link_client.SafeLinkHttpFunc("getblock", &param_getblock, config.RpcServerConfig.IsTls[ChainType])
+			if config.RpcServerConfig.IsOldFunctionLevel[ChainType] {
+				tx_datas, _ := blockdata.Get("result").Get("tx").Array()
+				stx_datas, _ := blockdata.Get("result").Get("stx").Array()
+				tx_real_datas := make([]interface{}, 0, len(tx_datas)+len(stx_datas))
+				for _, txids := range tx_datas {
+					param_gettransaction := make([]interface{}, 0)
+					param_gettransaction = append(param_gettransaction, txids.(string))
+					param_gettransaction = append(param_gettransaction, 2)
+					tx_data := link_client.SafeLinkHttpFunc("getrawtransaction", &param_gettransaction, config.RpcServerConfig.IsTls[ChainType])
+					map_data, err := tx_data.Get("result").Map()
+					if err != nil {
+						fmt.Println(err.Error())
+					}
+					tx_real_datas = append(tx_real_datas, map_data)
 				}
-				tx_real_datas = append(tx_real_datas,map_data)
+
+				for _, txids := range stx_datas {
+					param_gettransaction := make([]interface{}, 0)
+					param_gettransaction = append(param_gettransaction, txids.(string))
+					param_gettransaction = append(param_gettransaction, 2)
+					tx_data := link_client.SafeLinkHttpFunc("getrawtransaction", &param_gettransaction, config.RpcServerConfig.IsTls[ChainType])
+					map_data, err := tx_data.Get("result").Map()
+					if err != nil {
+						fmt.Println(err.Error())
+					}
+					tx_real_datas = append(tx_real_datas, map_data)
+				}
+				blockdata.Get("result").Set("tx", tx_real_datas)
 			}
-			blockdata.Get("result").Set("tx",tx_real_datas)
+		} else {
+			// For BTM
+			param_getblock := make(map[string]interface{})
+			param_getblock["block_height"] = once_height
+
+			blockdata = link_client.SafeLinkHttpFuncForBTM("get-block", &param_getblock)
 		}
 		data_chan <- map[int]simplejson.Json{once_height:*blockdata}
 	}
@@ -138,7 +181,6 @@ func collect_block(height_chan chan int,blockdata_chan chan simplejson.Json,is_f
 	if is_fast{
 		delta_size := 20
 		one_batch_count :=delta_size/4
-
 
 		for ;;{
 			height_cache := make([]int,0,delta_size)
@@ -199,7 +241,7 @@ func collect_block(height_chan chan int,blockdata_chan chan simplejson.Json,is_f
 
 				size,_ := blockdata.Get("result").Get("size").Int()
 				atomic.AddInt64(&total_size,int64(size))
-				tx_array,_ := blockdata.Get("result").Get("tx").Array()
+				tx_array,_ := blockdata.Get("result").Get(get_json_elem_tag_txs()).Array()
 				atomic.AddInt64(&total_trx_size,int64(len(tx_array)))
 				if height % 1000 == 0{
 					tmp_height,_ :=blockdata.Get("result").Get("height").Int()
@@ -284,7 +326,7 @@ func collect_block(height_chan chan int,blockdata_chan chan simplejson.Json,is_f
 
 				size,_ := blockdata.Get("result").Get("size").Int()
 				atomic.AddInt64(&total_size,int64(size))
-				tx_array,_ := blockdata.Get("result").Get("tx").Array()
+				tx_array,_ := blockdata.Get("result").Get(get_json_elem_tag_txs()).Array()
 				atomic.AddInt64(&total_trx_size,int64(len(tx_array)))
 				if height % 1000 == 0{
 					tmp_height,_ :=blockdata.Get("result").Get("height").Int()
@@ -541,7 +583,19 @@ func spent_utxo(utxo_prefix string,addr_utxo_prefix string){
 
 
 func add_utxo(utxo_prefix string,value interface{},address string,addr_utxo_prefix string,scriptPubkey string){
-	data_value:=strconv.FormatFloat(value.(float64),'f',8,64)
+	var data_value string
+	switch t := value.(type) {
+	case float64:
+		data_value = strconv.FormatFloat(value.(float64), 'f', 8, 64)
+	case int64:
+		data_value = strconv.FormatInt(value.(int64), 10)
+	case uint64:
+		data_value = strconv.FormatUint(value.(uint64), 10)
+	default:
+		_ = t
+		return
+	}
+
 	utxo_obj := pro.UTXOObject{}
 	utxo_obj.Value = &data_value
 	utxo_obj.Address = &address
@@ -557,8 +611,13 @@ func add_utxo(utxo_prefix string,value interface{},address string,addr_utxo_pref
 
 }
 
+
 func cal_utxo_prefix(txid string, vout int)string{
 	return ChainType+txid+ "I" +strconv.Itoa(vout)
+}
+
+func cal_utxo_prefix_for_btm(utxoid string)string{
+	return ChainType+utxoid
 }
 
 func cal_addr_utxo_prefix(address string,txid string, vout int)string{
@@ -568,6 +627,12 @@ func cal_addr_utxo_prefix(address string,txid string, vout int)string{
 	return ChainType+address[:20]+"O"+txid+ "I" +strconv.Itoa(vout)
 }
 
+func cal_addr_utxo_prefix_for_btm(address string,utxoid string)string{
+	if address == ""{
+		return ChainType+"O"+utxoid
+	}
+	return ChainType+address[:20]+"O"+utxoid
+}
 
 func bin_to_b58check(data []byte,magic_byte byte) string{
 	/* See https://en.bitcoin.it/wiki/Technical_background_of_Bitcoin_addresses */
@@ -690,7 +755,7 @@ func handle_block(blockdata_chan chan simplejson.Json,interval int){
 		//address_batch := &leveldb.Batch{}
 		//affect_addresses :=make(  map[string]interface{})
 
-		tx_datas,_ := blockchain_data.Get("result").Get("tx").Array()
+		tx_datas,_ := blockchain_data.Get("result").Get(get_json_elem_tag_txs()).Array()
 		//处理数据
 		tmp_height,_ := blockchain_data.Get("result").Get("height").Int()
 
@@ -698,83 +763,185 @@ func handle_block(blockdata_chan chan simplejson.Json,interval int){
 
 			one_trx := trx_data.(map[string]interface{})
 
-			trx_Id := one_trx["txid"].(string)
+			trx_Id := one_trx[get_json_elem_tag_txid()].(string)
 
 			tx_byte := make([]byte,32)
 			hex.Decode(tx_byte,[]byte(trx_Id))
 			trxId_cache = append(trxId_cache,tx_byte)
 			atomic.AddInt32(&change_weight,int32(32))
 
-			vins := one_trx["vin"].([]interface{})
+			vins := one_trx[get_json_elem_tag_tx_vin()].([]interface{})
 
-			for _,vin_data := range vins{
-				vin := vin_data.(map[string]interface{})
-				_,exist := vin["coinbase"]
-				if exist{
-					continue
-				}
-				vin_txid,txid_exist := vin["txid"]
-				if vin_txid.(string) =="0000000000000000000000000000000000000000000000000000000000000000"{
-					continue
-				}
-				vout,vout_exist := vin["vout"]
-				vout_data,_ := vout.(json.Number).Int64()
+			if !is_chain_btm() {
+				for _,vin_data := range vins{
+					vin := vin_data.(map[string]interface{})
+					_,exist := vin["coinbase"]
+					if exist{
+						continue
+					}
+					vin_txid,txid_exist := vin["txid"]
+					if vin_txid.(string) =="0000000000000000000000000000000000000000000000000000000000000000"{
+						continue
+					}
+					vout,vout_exist := vin["vout"]
+					vout_data,_ := vout.(json.Number).Int64()
 
-				if txid_exist && vout_exist{
-					for ;;{
-						//获取utxo记录
-						utxo_prefix := cal_utxo_prefix(vin_txid.(string),int(vout_data))
+					if txid_exist && vout_exist{
+						for ;;{
+							//获取utxo记录
+							utxo_prefix := cal_utxo_prefix(vin_txid.(string),int(vout_data))
 
-						data := get_utxo(utxo_prefix)
-						if data==nil{
-							fmt.Println("UTXO not exist",utxo_prefix,trx_data)
-							is_done = true
-							return
+							data := get_utxo(utxo_prefix)
+							if data==nil{
+								fmt.Println("UTXO not exist",utxo_prefix,trx_data)
+								is_done = true
+								return
 
 							}
-						//增加关系表内容
-						addr_utxo_prefix := cal_addr_utxo_prefix(*data.(pro.UTXOObject).Address,vin_txid.(string),int(vout_data))
-						add_addr_trx_releation(trx_counts,*data.(pro.UTXOObject).Address)
+							//增加关系表内容
+							addr_utxo_prefix := cal_addr_utxo_prefix(*data.(pro.UTXOObject).Address,vin_txid.(string),int(vout_data))
+							add_addr_trx_releation(trx_counts,*data.(pro.UTXOObject).Address)
 
-						//address_trx_db.Insert(tmp_map).Exec(session)
-						//one_vin_map["value"] = data["value"]
-						//one_vin_map["address"] = data["address"]
-						//删除utxo记录
-						spent_utxo(utxo_prefix,addr_utxo_prefix)
-						break
+							//address_trx_db.Insert(tmp_map).Exec(session)
+							//one_vin_map["value"] = data["value"]
+							//one_vin_map["address"] = data["address"]
+							//删除utxo记录
+							spent_utxo(utxo_prefix,addr_utxo_prefix)
+							break
 						}
 					}
-				//vins_map = append(vins_map, one_vin_map)
-			}
-			//trx_map_obj["vins"] = vins_map
-
-			vouts := one_trx["vout"].([]interface{})
-
-			for _,vout_data := range vouts{
-				vout := vout_data.(map[string]interface{})
-				script := vout["scriptPubKey"].(map[string]interface{})
-				value,exist := vout["value"]
-				var value_data float64
-				if exist{
-					value_data,_ = value.(json.Number).Float64()
+					//vins_map = append(vins_map, one_vin_map)
 				}
-				n,exist := vout["n"]
-				var n_data int64
-				if exist{
-					n_data,_ = n.(json.Number).Int64()
-				}
-				//cal vout address
-				affect_address,script_pubkey:= get_vout_address(script)
-				//新增关系记录
-				add_addr_trx_releation(trx_counts,affect_address)
+				//trx_map_obj["vins"] = vins_map
+			} else {
+				// for BTM
+				for _, vin_data := range vins {
+					vin := vin_data.(map[string]interface{})
+					vin_type, exist := vin["type"]
+					if !exist {
+						continue
+					}
+					if vin_type == "coinbase" {
+						continue
+					}
+					asset_id, exist2 := vin["asset_id"]
+					if !exist2 {
+						continue
+					}
+					// btm 原生资产
+					if asset_id != "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" {
+						continue
+					}
 
-				//插入utxo
-				utxo_prefix := cal_utxo_prefix(trx_Id,int(n_data))
-				addr_utxo_prefix := cal_addr_utxo_prefix(affect_address,trx_Id,int(n_data))
-				add_utxo(utxo_prefix,value_data,affect_address,addr_utxo_prefix,script_pubkey)
+					utxo_id, utxo_exist := vin["spent_output_id"]
+					if !utxo_exist {
+						continue
+					}
+					vin_type, type_exist := vin["type"]
+					if !type_exist {
+						continue
+					}
+					if vin_type.(string) != "spend" {
+						continue
+					}
+
+					if utxo_exist && type_exist {
+						for ; ; {
+							//获取utxo记录
+							utxo_prefix := cal_utxo_prefix_for_btm(utxo_id.(string))
+
+							data := get_utxo(utxo_prefix)
+							if data == nil {
+								fmt.Println("UTXO not exist", utxo_prefix, trx_data)
+								is_done = true
+								return
+
+							}
+							//增加关系表内容
+							addr_utxo_prefix := cal_addr_utxo_prefix_for_btm(*data.(pro.UTXOObject).Address, utxo_id.(string))
+							add_addr_trx_releation(trx_counts, *data.(pro.UTXOObject).Address)
+
+							//删除utxo记录
+							spent_utxo(utxo_prefix, addr_utxo_prefix)
+							break
+						}
+					}
+				}
 			}
-			//trx_map_obj["vouts"] = vouts_map
-			//write_trx_data = append(write_trx_data,trx_map_obj)
+
+			vouts := one_trx[get_json_elem_tag_tx_vout()].([]interface{})
+
+			if !is_chain_btm() {
+				for _, vout_data := range vouts {
+					vout := vout_data.(map[string]interface{})
+					script := vout["scriptPubKey"].(map[string]interface{})
+					value, exist := vout["value"]
+					var value_data float64
+					if exist {
+						value_data, _ = value.(json.Number).Float64()
+					}
+					n, exist := vout["n"]
+					var n_data int64
+					if exist {
+						n_data, _ = n.(json.Number).Int64()
+					}
+					//cal vout address
+					affect_address, script_pubkey := get_vout_address(script)
+					//新增关系记录
+					add_addr_trx_releation(trx_counts, affect_address)
+
+					//插入utxo
+					utxo_prefix := cal_utxo_prefix(trx_Id, int(n_data))
+					addr_utxo_prefix := cal_addr_utxo_prefix(affect_address, trx_Id, int(n_data))
+					add_utxo(utxo_prefix, value_data, affect_address, addr_utxo_prefix, script_pubkey)
+				}
+				//trx_map_obj["vouts"] = vouts_map
+				//write_trx_data = append(write_trx_data,trx_map_obj)
+			} else {
+				// for BTM
+				for _, vout_data := range vouts {
+					vout := vout_data.(map[string]interface{})
+
+					asset_id, exist := vout["asset_id"]
+					if !exist {
+						continue
+					}
+
+					// btm 原生资产
+					if asset_id != "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" {
+						continue
+					}
+					asset_type, exist := vout["type"]
+					if !exist {
+						continue
+					}
+					if asset_type != "control" {
+						continue
+					}
+
+					affect_address := ""
+					affect_address_if, exist := vout["address"]
+					if exist {
+						affect_address = affect_address_if.(string)
+					}
+
+					utxo_id := vout["id"].(string)
+					control_program := vout["control_program"].(string)
+					value, exist := vout["amount"]
+					var value_data int64
+					if exist {
+						value_data, _ = value.(json.Number).Int64()
+					}
+
+					//新增关系记录
+					add_addr_trx_releation(trx_counts, affect_address)
+
+					//插入utxo
+					utxo_prefix := cal_utxo_prefix_for_btm(utxo_id)
+					addr_utxo_prefix := cal_addr_utxo_prefix_for_btm(affect_address, utxo_id)
+					add_utxo(utxo_prefix, value_data, affect_address, addr_utxo_prefix, control_program)
+				}
+			}
 			trx_counts ++
 		}
 		if last_height<tmp_height{
@@ -822,10 +989,13 @@ func main(){
 		}
 	}
 
-
-	//检测推出信号
+	//检测退出信号
 	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, os.Interrupt, os.Kill,  syscall.SIGINT, syscall.SIGTERM)
+	//signal.Notify(sigs, os.Interrupt, os.Kill,  syscall.SIGINT, syscall.SIGTERM)
+	// os.Interrupt 与 syscall.SIGINT 是同种信号
+	// 信号9 ((kill) 无法被拦截
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
 
 	go func (){
 		sig:=<-sigs
@@ -851,7 +1021,12 @@ func main(){
 	tmp_height,err:=config_db.Get([]byte("height"),nil)
 	fmt.Println(tmp_height)
 	if err != nil {
-		tmp_height = []byte("0")
+		if !is_chain_btm() {
+			tmp_height = []byte("0")
+		} else {
+			// the first block num of btm is 0
+			tmp_height = []byte("-1")
+		}
 	}
 	height,_ :=strconv.Atoi(string(tmp_height))
 	old_chan_height=int32(height)
@@ -883,20 +1058,32 @@ func main(){
 		PassWord:config.RpcServerConfig.SourceDataPassword[ChainType],
 	}
 	//vin := &pro.TrxObject_VIN{}
-	param := make([]interface{},0)
 
 	var count int
 	for ;;{
-	json_data := link_client.SafeLinkHttpFunc(config.RpcServerConfig.GetInfoFunctionName[ChainType],&param ,config.RpcServerConfig.IsTls[ChainType])
-	count,_ = json_data.Get("result").Get("blocks").Int()
-	count = count - config.RpcServerConfig.SafeBlock[ChainType]
+		//json_data := link_client.SafeLinkHttpFunc(config.RpcServerConfig.GetInfoFunctionName[ChainType],&param ,config.RpcServerConfig.IsTls[ChainType])
+		//count,_ = json_data.Get("result").Get("blocks").Int()
+		var json_data *simplejson.Json
+		if is_chain_btm() {
+			param := make(map[string]interface{})
+			json_data = link_client.SafeLinkHttpFuncForBTM(config.RpcServerConfig.GetBlockCountFunctionName[ChainType], &param)
+		} else {
+			param := make([]interface{},0)
+			json_data = link_client.SafeLinkHttpFunc(config.RpcServerConfig.GetBlockCountFunctionName[ChainType], &param, config.RpcServerConfig.IsTls[ChainType])
+		}
+
+		if !is_chain_btm() {
+			count, _ = json_data.Get("result").Int()
+		} else {
+			count, _ = json_data.Get("result").Get("block_count").Int()
+		}
+		count = count - config.RpcServerConfig.SafeBlock[ChainType]
 		if count >= height{
 			break
 		}
 		time.Sleep(5 * time.Second)
 		fmt.Println("invalid chain height",count)
 	}
-
 
 	fmt.Println("chain height",count)
 	global_start_height  = height
@@ -937,11 +1124,26 @@ func main(){
 		old_count := count
 		last_height = old_count-1
 		for ;!is_done;{
-
-			param := make([]interface{},0)
-			json_data := link_client.SafeLinkHttpFunc(config.RpcServerConfig.GetInfoFunctionName[ChainType],&param ,config.RpcServerConfig.IsTls[ChainType])
+			//param := make([]interface{},0)
+			//json_data := link_client.SafeLinkHttpFunc(config.RpcServerConfig.GetInfoFunctionName[ChainType],&param ,config.RpcServerConfig.IsTls[ChainType])
 			//fmt.Println(json_data)
-			count,_ := json_data.Get("result").Get("blocks").Int()
+			//count,_ := json_data.Get("result").Get("blocks").Int()
+
+			var json_data *simplejson.Json
+			if is_chain_btm() {
+				param := make(map[string]interface{})
+				json_data = link_client.SafeLinkHttpFuncForBTM(config.RpcServerConfig.GetBlockCountFunctionName[ChainType], &param)
+			} else {
+				param := make([]interface{},0)
+				json_data = link_client.SafeLinkHttpFunc(config.RpcServerConfig.GetBlockCountFunctionName[ChainType], &param, config.RpcServerConfig.IsTls[ChainType])
+			}
+
+			if !is_chain_btm() {
+				count, _ = json_data.Get("result").Int()
+			} else {
+				count, _ = json_data.Get("result").Get("block_count").Int()
+			}
+
 			count = count - config.RpcServerConfig.SafeBlock[ChainType]
 			if old_count <count{
 				fmt.Println("current height:",old_count,"target height",count,"time",time.Now())

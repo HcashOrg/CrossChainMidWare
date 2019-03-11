@@ -17,6 +17,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	pro "protobuf"
 	lnk_util "util"
+	"github.com/kataras/iris/core/errors"
 )
 
 var (
@@ -53,10 +54,7 @@ func (s *Service) GetAddressHistory(r *http.Request, args *string, reply *[]stri
 		hex.Encode(tx_byte,tmp_trx_data)
 		bak_map[i] = string(tx_byte)
 		fmt.Println(string(tx_byte))
-
 	}
-
-
 
 	*reply = bak_map
 
@@ -100,16 +98,33 @@ func (s *Service) GetTrxCountTrxId(r *http.Request, args *int, reply *string) er
 
 func (s *Service) GetTrx(r *http.Request, args *string, reply *map[string]interface{}) error {
 	link_client := lnk_util.LinkClient{
-		IP:config.RpcServerConfig.SourceDataHost[ChainType],
-		Port:config.RpcServerConfig.SourceDataPort[ChainType],
-		User:config.RpcServerConfig.SourceDataUserName[ChainType],
-		PassWord:config.RpcServerConfig.SourceDataPassword[ChainType],
+		IP:       config.RpcServerConfig.SourceDataHost[ChainType],
+		Port:     config.RpcServerConfig.SourceDataPort[ChainType],
+		User:     config.RpcServerConfig.SourceDataUserName[ChainType],
+		PassWord: config.RpcServerConfig.SourceDataPassword[ChainType],
 	}
-	param := make([]interface{},0)
-	param = append(param, *args)
-	param = append(param, 1)
-	trx_data,_ := link_client.LinkHttpFunc("getrawtransaction",&param ,config.RpcServerConfig.IsTls[ChainType]).Get("result").Map()
-	*reply = trx_data
+	if !is_chain_btm() {
+		param := make([]interface{}, 0)
+		param = append(param, *args)
+		param = append(param, 1)
+		trx_data, _ := link_client.LinkHttpFunc("getrawtransaction", &param, config.RpcServerConfig.IsTls[ChainType]).Get("result").Map()
+		*reply = trx_data
+	} else {
+		blockHeight, trxId := lnk_util.SplitBlockHeightTrxId(*args)
+		if blockHeight == -1 {
+			return errors.New("invalid args")
+		}
+		param_getblock := make(map[string]interface{})
+		param_getblock["block_height"] = blockHeight
+
+		trxs_data, _ := link_client.SafeLinkHttpFuncForBTM("get-block", &param_getblock).Get("result").Get("transactions").Array()
+		for _, trx_data := range trxs_data {
+			if trx_data.(map[string]interface{})["id"].(string) == trxId {
+				*reply = trx_data.(map[string]interface{})
+				break
+			}
+		}
+	}
 	return nil
 }
 
@@ -129,7 +144,6 @@ func (s *Service) ListUnSpent(r *http.Request, args *string, reply *[]map[string
 			list_unspent_datas[string(iter.Key())] = string(data)
 			data = make([]byte,0)
 		}
-
 	}
 
 	bak_map := make([]map[string]interface{},len(list_unspent_datas))
@@ -145,12 +159,21 @@ func (s *Service) ListUnSpent(r *http.Request, args *string, reply *[]map[string
 			fmt.Println(utxo_obj.Address , *args)
 			continue
 		}
-		tmp_value,err := strconv.ParseFloat(*utxo_obj.Value,64)
-		if tmp_value<=0.0001{
-			continue
+
+		if !is_chain_btm() {
+			tmp_value, _ := strconv.ParseFloat(*utxo_obj.Value, 64)
+			if tmp_value <= 0.0001 {
+				continue
+			}
 		}
 		tmp_map := make(map[string]interface{})
-		txid,vout := lnk_util.SplitAddrUtxoPrefix(k)
+		txid,vout := "", 0
+		if !is_chain_btm() {
+			txid,vout = lnk_util.SplitAddrUtxoPrefix(k)
+		}else {
+			// For BTM, use utxoid
+			txid = lnk_util.SplitAddrUtxoPrefixForBtm(k)
+		}
 		tmp_map["txid"] = txid
 		tmp_map["vout"] = vout
 		tmp_map["address"] = *utxo_obj.Address
@@ -170,7 +193,7 @@ func (s *Service) ListUnSpent(r *http.Request, args *string, reply *[]map[string
 
 
 // address
-func (s *Service) GetBalance(r *http.Request, args *string, reply *float64) error {
+func (s *Service) GetBalance(r *http.Request, args *string, reply *interface{}) error {
 	prefix := ChainType+(*args)[:20]+"O"
 	query_range := util.BytesPrefix([]byte(prefix))
 	iter := addr_unspent_utxo_db.NewIterator(query_range,nil)
@@ -186,23 +209,41 @@ func (s *Service) GetBalance(r *http.Request, args *string, reply *float64) erro
 
 	}
 
-	balance := float64(0.0)
-	for _,v := range list_unspent_datas{
-		utxo_obj:= pro.UTXOObject{}
-		err :=proto.Unmarshal([]byte(v),&utxo_obj)
-		if err!=nil{
-			fmt.Println(err)
-			continue
+	if !is_chain_btm() {
+		balance := float64(0.0)
+		for _, v := range list_unspent_datas {
+			utxo_obj := pro.UTXOObject{}
+			err := proto.Unmarshal([]byte(v), &utxo_obj)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+			if *utxo_obj.Address != *args {
+				fmt.Println(utxo_obj.Address, *args)
+				continue
+			}
+			tmp_value, err := strconv.ParseFloat(*utxo_obj.Value, 64)
+			balance += tmp_value
 		}
-		if *utxo_obj.Address != *args{
-			fmt.Println(utxo_obj.Address , *args)
-			continue
+		*reply = balance
+	} else {
+		balance := uint64(0)
+		for _, v := range list_unspent_datas {
+			utxo_obj := pro.UTXOObject{}
+			err := proto.Unmarshal([]byte(v), &utxo_obj)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+			if *utxo_obj.Address != *args {
+				fmt.Println(utxo_obj.Address, *args)
+				continue
+			}
+			tmp_value, _ := strconv.ParseUint(*utxo_obj.Value, 10, 64)
+			balance += tmp_value
 		}
-		tmp_value,err := strconv.ParseFloat(*utxo_obj.Value,64)
-		balance += tmp_value
-
+		*reply = balance
 	}
-	*reply = balance
 
 	return nil
 }

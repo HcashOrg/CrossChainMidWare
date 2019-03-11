@@ -19,6 +19,13 @@ import hashlib
 last_clean_broadcast_cache_time = time.time()
 
 
+def DeprecatedFunction(f):
+    def func():
+        pass
+    return func
+
+
+@DeprecatedFunction
 @jsonrpc.method('Zchain.Crypt.Sign(chainId=str, addr=str, message=str)')
 def zchain_crypt_sign(chainId, addr, message):
     logger.info('Zchain.Crypt.Sign')
@@ -42,6 +49,7 @@ def zchain_crypt_sign(chainId, addr, message):
     }
 
 
+@DeprecatedFunction
 @jsonrpc.method('Zchain.Trans.Sign(chainId=str,addr=str, trx_hex=str, redeemScript=str)')
 def zchain_Trans_sign(chainId,addr, trx_hex, redeemScript):
     logger.info('Zchain.Trans.Sign')
@@ -74,7 +82,7 @@ def zchain_Addr_GetAddErc(chainId,addr,precison):
     if erc_chainId_map.has_key(chainId):
         asset = erc_chainId_map[chainId]
 
-    if asset == None:
+    if asset is None:
         return {}
     else:
         return{

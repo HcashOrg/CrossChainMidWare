@@ -34,3 +34,20 @@ func SplitAddrUtxoPrefix(prefix string)(string,int){
 	 vout,_ := strconv.ParseInt(vout_str,10,32)
 	 return txid,int(vout)
 }
+func SplitAddrUtxoPrefixForBtm(prefix string)(string){
+	start := strings.Index(prefix,"O")
+	utxoid := prefix[start+1:]
+	return utxoid
+}
+func SplitBlockHeightTrxId(args string)(int,string) {
+	argList := strings.Split(args,"|")
+	if len(argList) != 2 {
+		return -1, ""
+	}
+	blockHeight, err := strconv.Atoi(argList[0])
+	if err != nil {
+		return -1, ""
+	}
+	trxId := argList[1]
+	return blockHeight,trxId
+}
