@@ -5,7 +5,7 @@ import (
 	"github.com/gorilla/rpc"
 	"github.com/gorilla/rpc/json"
 	"net/http"
-
+	"github.com/bytom/crypto/ed25519/chainkd"
 	"config"
 	"sync"
 	"fmt"
@@ -18,6 +18,10 @@ import (
 	pro "protobuf"
 	lnk_util "util"
 	"github.com/kataras/iris/core/errors"
+	vmutil "github.com/bytom/protocol/vm/vmutil"
+	"github.com/bytom/crypto"
+	"github.com/bytom/common"
+	"github.com/bytom/consensus"
 )
 
 var (
@@ -28,6 +32,39 @@ var (
 type Service struct {
 }
 
+func (s *Service) CreateMultiSig(r *http.Request, args *[]interface{}, reply *map[string]interface{}) error{
+	strPubkeys := (*args)[0].([]interface{})
+	quorum := int((*args)[1].(float64))
+
+	pubs := make([]chainkd.XPub, 0)
+	for _, strPubkey := range strPubkeys {
+		strPubkeyStr := strPubkey.(string)
+		var pub chainkd.XPub
+		pub.UnmarshalText([]byte(strPubkeyStr))
+		pubs = append(pubs, pub)
+	}
+
+	derivedPKs := chainkd.XPubKeys(pubs)
+	signScript, err := vmutil.P2SPMultiSigProgram(derivedPKs, quorum)
+	if err != nil {
+		return errors.New("P2SPMultiSigProgram fail")
+	}
+	scriptHash := crypto.Sha256(signScript)
+
+	address, err := common.NewAddressWitnessScriptHash(scriptHash, &consensus.ActiveNetParams)
+	if err != nil {
+		return errors.New("NewAddressWitnessScriptHash fail")
+	}
+
+	addressStr := address.EncodeAddress()
+	redeemScriptStr := hex.EncodeToString(signScript)
+
+	(*reply) = make(map[string]interface{})
+	(*reply)["address"] = addressStr
+	(*reply)["redeemScript"] = redeemScriptStr
+
+	return nil
+}
 
 func (s *Service) GetAddressHistory(r *http.Request, args *string, reply *[]string) error {
 	query_range := util.BytesPrefix([]byte(*args))
@@ -94,7 +131,19 @@ func (s *Service) GetTrxCountTrxId(r *http.Request, args *int, reply *string) er
 	return nil
 }
 
-
+func (s *Service) GetTrxBlockHeight(r *http.Request, args *string, reply *int) error {
+	if !is_chain_btm() {
+		return errors.New("this function only support BTM")
+	} else {
+		tmp_height, err := trxid_blockheight_db.Get([]byte(*args), nil)
+		if err != nil {
+			tmp_height = []byte("0")
+		}
+		block_height,_ := strconv.Atoi(string(tmp_height))
+		*reply = block_height
+		return nil
+	}
+}
 
 func (s *Service) GetTrx(r *http.Request, args *string, reply *map[string]interface{}) error {
 	link_client := lnk_util.LinkClient{
@@ -146,8 +195,9 @@ func (s *Service) ListUnSpent(r *http.Request, args *string, reply *[]map[string
 		}
 	}
 
-	bak_map := make([]map[string]interface{},len(list_unspent_datas))
-	index := 0
+	//bak_map := make([]map[string]interface{},len(list_unspent_datas))
+	//index := 0
+	bak_map := make([]map[string]interface{}, 0)
 	for k,v := range list_unspent_datas{
 		utxo_obj:= pro.UTXOObject{}
 		err :=proto.Unmarshal([]byte(v),&utxo_obj)
@@ -179,9 +229,13 @@ func (s *Service) ListUnSpent(r *http.Request, args *string, reply *[]map[string
 		tmp_map["address"] = *utxo_obj.Address
 		tmp_map["scriptPubKey"] = *utxo_obj.ScriptPubKey
 		tmp_map["value"] = *utxo_obj.Value
-		bak_map[index] = tmp_map
-		index = index +1
-		if index>1500{
+		//bak_map[index] = tmp_map
+		//index = index +1
+		//if index>1500{
+		//	break
+		//}
+		bak_map = append(bak_map, tmp_map)
+		if len(bak_map) > 1500 {
 			break
 		}
 	}

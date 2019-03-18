@@ -189,33 +189,33 @@ func (client * LinkClient)LinkHttpFunc(function string,params *[]interface{},ist
 	//fmt.Println(js)
 	return js
 }
-func (client * LinkClient)HttpRpcFunction(function string,param *[]interface{})string{
-	url:="http://"+(*client).IP+":"+(*client).Port
-	a := HttpRequest{"1",function,*param}
-	fmt.Println(a)
-	b,_:= json.Marshal(a)
-	payload := strings.NewReader(string(b))
-	encodeUser := base64.StdEncoding.EncodeToString([]byte((*client).User+":"+(*client).PassWord))
-	req, _ := http.NewRequest("POST", url, payload)
-	req.Header.Add("content-type", "application/json")
-	req.Header.Add("authorization", "Basic "+ encodeUser)
-	req.Header.Add("cache-control", "no-cache")
-	res, err := http.DefaultClient.Do(req)
-	if err != nil{
-		fmt.Println(err.Error())
-		return ""
-	}
-	defer res.Body.Close()
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil{
-		fmt.Println(err.Error())
-		return ""
-	}
-	tempparam := make(map[string]interface{})
-	json.Unmarshal([]byte(string(body)),&tempparam)
-	fmt.Println(string(body))
-	return string(body)
-}
+//func (client * LinkClient)HttpRpcFunction(function string,param *[]interface{})string{
+//	url:="http://"+(*client).IP+":"+(*client).Port
+//	a := HttpRequest{"1",function,*param}
+//	fmt.Println(a)
+//	b,_:= json.Marshal(a)
+//	payload := strings.NewReader(string(b))
+//	encodeUser := base64.StdEncoding.EncodeToString([]byte((*client).User+":"+(*client).PassWord))
+//	req, _ := http.NewRequest("POST", url, payload)
+//	req.Header.Add("content-type", "application/json")
+//	req.Header.Add("authorization", "Basic "+ encodeUser)
+//	req.Header.Add("cache-control", "no-cache")
+//	res, err := http.DefaultClient.Do(req)
+//	if err != nil{
+//		fmt.Println(err.Error())
+//		return ""
+//	}
+//	defer res.Body.Close()
+//	body, err := ioutil.ReadAll(res.Body)
+//	if err != nil{
+//		fmt.Println(err.Error())
+//		return ""
+//	}
+//	tempparam := make(map[string]interface{})
+//	json.Unmarshal([]byte(string(body)),&tempparam)
+//	fmt.Println(string(body))
+//	return string(body)
+//}
 
 func (client * LinkClient)LinkHttpFuncForBTM(function string, params *map[string]interface{})(*simplejson.Json) {
 	transport := http.Transport{
@@ -227,6 +227,7 @@ func (client * LinkClient)LinkHttpFuncForBTM(function string, params *map[string
 
 	payload := strings.NewReader(string(b))
 	//fmt.Println(payload)
+
 	req, err := http.NewRequest("POST", fmt.Sprintf("%s:%s/%s", (*client).IP, (*client).Port, function), payload)
 
 	if err != nil{
