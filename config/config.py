@@ -146,6 +146,19 @@ class hzkConfig(Config) :
     ETH_Minimum = 1
 
 
+class MuConfig(Config):
+    MONGO_HOST = '192.168.1.121'
+    MONGO_PORT = 27017
+    MONGO_NAME = 'chaindb'
+    MONGO_USER = 'chaindb_user'
+    MONGO_PASS = 'yqr.1010'
+    BTM_HOST = "192.168.1.107"
+    BTM_PORT = 9888
+    BTM_FEE = 10000000
+    BTM_COLLECT_HOST = "192.168.1.107"
+    BTM_COLLECT_PORT = 5451
+
+
 config = {
     'development': DevelopmentConfig,
     'testing': TestingConfig,
@@ -153,5 +166,6 @@ config = {
     'default': DevelopmentConfig,
     'Sunny': SunnyConfig,
     'Da': DaConfig,
-    'hzk':hzkConfig
+    'hzk':hzkConfig,
+    'mutalisk': MuConfig
 }

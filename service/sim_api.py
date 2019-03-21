@@ -8,6 +8,7 @@ from service import db
 from service import sim_btc_plugin,sim_btc_utils_all
 from service import hc_plugin
 from service import usdt_plugin
+from service import btm_plugin
 from utils import error_utils
 import pymongo
 from datetime import datetime
@@ -118,6 +119,8 @@ def zchain_trans_broadcastTrx(chainId, trx):
         result = hc_plugin.hc_broadcaset_trx(trx)
     elif chainId =="usdt":
         result = usdt_plugin.omni_broadcaset_trx(trx)
+    elif chainId == "btm":
+        result = btm_plugin.btm_broadcaset_trx(trx)
     elif chainId.lower() == "eth":
         result = eth_utils.eth_send_raw_transaction(trx)
     elif 'erc' in chainId.lower():
@@ -139,6 +142,7 @@ def zchain_trans_broadcastTrx(chainId, trx):
         'data': result
     }
 
+@DeprecatedFunction
 @jsonrpc.method('Zchain.Addr.importAddrs(chainId=str,addrs=list)')
 def zchain_addr_import_addrs(chainId,addrs):
     logger.info('Zchain.Addr.importAddrs')
@@ -201,6 +205,8 @@ def zchain_addr_import_addrs(chainId,addrs):
         'chainId': chainId,
         'data': ""
     }
+
+@DeprecatedFunction
 @jsonrpc.method('Zchain.Addr.importAddr(chainId=str, addr=str)')
 def zchain_addr_importaddr(chainId, addr):
     logger.info('Zchain.Addr.importAddr')
@@ -306,12 +312,13 @@ def zchain_query_getBlockHeight(chainId):
     logger.info('Zchain.Query.getBlockHeight')
     if type(chainId) != unicode:
         return error_utils.mismatched_parameter_type('chainId', 'STRING')
-    chainId = chainId.lower()
     result = {}
     if 'erc' in chainId:
         result = eth_utils.eth_get_block_height()
     elif 'eth' == chainId:
         result = eth_utils.eth_get_block_height()
+    elif 'btm' == chainId:
+        result = btm_plugin.btm_get_block_height()
     elif 'hc' == chainId:
         cache_record = db.get_collection("b_config").find_one({"key" : "hcsyncblocknum"})
         if cache_record is not None:
@@ -372,6 +379,8 @@ def zchain_query_getUtxoCount(chainId,address):
         result = hc_plugin.hc_get_trx_out(address)
     elif chainId == "usdt":
         result = usdt_plugin.omni_get_trx_out(address)
+    elif chainId == "btm":
+        result = btm_plugin.btm_get_trx_out(address)
     else:
         return error_utils.invalid_chainid_type()
     #print result
@@ -392,6 +401,8 @@ def zchain_trans_createTrx(chainId, from_addr,dest_info):
         result = hc_plugin.hc_create_transaction(from_addr, dest_info)
     elif chainId == "usdt":
         result = usdt_plugin.omni_create_transaction(from_addr,dest_info)
+    elif chainId == "btm":
+        result = btm_plugin.btm_create_transaction(from_addr, dest_info)
     else:
         return error_utils.invalid_chainid_type()
 
@@ -404,6 +415,7 @@ def zchain_trans_createTrx(chainId, from_addr,dest_info):
     }
 
 
+@DeprecatedFunction
 @jsonrpc.method('Zchain.Trans.CombineTrx(chainId=str, transactions=list)')
 def zchain_trans_CombineTrx(chainId, transactions):
     logger.info('Zchain.Trans.CombineTrx')
@@ -443,6 +455,8 @@ def zchain_trans_decodeTrx(chainId, trx_hex):
         result = hc_plugin.hc_decode_hex_transaction(trx_hex)
     elif chainId == "usdt":
         result = usdt_plugin.omni_decode_hex_transaction(trx_hex)
+    elif chainId == "btm":
+        result = btm_plugin.btm_decode_hex_transaction(trx_hex)
     else:
         return error_utils.invalid_chainid_type()
 
@@ -507,6 +521,11 @@ def zchain_trans_queryTrx(chainId, trxid):
             except Exception, ex:
                 print "query confirmation failed", ex
 
+    elif chainId == "btm":
+        result = btm_plugin.btm_get_transaction(trxid)
+        print result
+        if "outputs" in result:
+            is_cache = True
 
     elif chainId == "eth" or "erc" in chainId:
         source,respit = eth_utils.get_transaction_data(trxid)
@@ -571,6 +590,9 @@ def zchain_trans_queryTrx(chainId, trxids):
         elif chainId == "usdt":
             result = usdt_plugin.omni_get_transaction(one_txid)
             print result
+        elif chainId == "btm":
+            result = btm_plugin.btm_get_transaction(one_txid)
+            print result
         elif chainId == "eth" or "erc" in chainId:
             source,respit = eth_utils.get_transaction_data(one_txid)
             so_re_dic = {'source_trx':source,'respit_trx':respit}
@@ -598,6 +620,7 @@ def zchain_trans_queryTrx(chainId, trxids):
         'data': res_data
     }
 
+@DeprecatedFunction
 @jsonrpc.method('Zchain.Trans.getTrxOuts(chainId=str, addr=str)')
 def zchain_trans_getTrxOuts(chainId, addr):
     chainId = chainId.lower()
@@ -690,6 +713,16 @@ def zchain_multisig_create(chainId, addrs, amount):
                 db.get_collection("b_hc_multisig_address").remove({"address": address})
             data = {"address": address, "redeemScript": redeemScript, "addr_type":0}
             db.get_collection("b_hc_multisig_address").insert_one(data)
+    elif chainId == "btm":
+        result = btm_plugin.btm_create_multisig(addrs, amount)
+        if result is not None:
+            address = result["address"]
+            redeemScript = result["redeemScript"]
+            mutisig_record = db.get_collection("b_btm_multisig_address").find_one({"address": address})
+            if mutisig_record is not None:
+                db.get_collection("b_btm_multisig_address").remove({"address": address})
+            data = {"address": address, "redeemScript": redeemScript, "addr_type":0}
+            db.get_collection("b_btm_multisig_address").insert_one(data)
     elif chainId == "usdt":
         result = usdt_plugin.omni_create_multisig(addrs, amount)
         if result is not None:
@@ -724,6 +757,12 @@ def zchain_address_validate(chainId,addr):
         result = hc_plugin.hc_validate_address(addr)
     elif chainId == "usdt":
         result = usdt_plugin.omni_validate_address(addr)
+    elif chainId == "btm":
+        result = btm_plugin.btm_validate_address(addr)
+        return {
+            "chainId": chainId,
+            "valid": result
+        }
     elif chainId == "eth" or 'erc'in chainId:
         result = eth_utils.eth_validate_address(addr)
         return {
@@ -738,6 +777,7 @@ def zchain_address_validate(chainId,addr):
         "valid"  : result.get("isvalid")
     }
 
+@DeprecatedFunction
 @jsonrpc.method('Zchain.Multisig.Add(chainId=str, addrs=list, amount=int, addrType=int)')
 def zchain_multisig_add(chainId, addrs, amount, addrType):
     logger.info('Zchain.Multisig.Add')
@@ -1038,6 +1078,8 @@ def zchain_address_get_balance(chainId, addr):
         balance = sim_btc_plugin[chainId].sim_btc_get_balance(addr)
     elif chainId =="usdt":
         balance = usdt_plugin.omni_get_balance(addr)
+    elif chainId == "btm":
+        balance = btm_plugin.btm_get_balance(addr)
     else:
         return error_utils.invalid_chainid_type(chainId)
 

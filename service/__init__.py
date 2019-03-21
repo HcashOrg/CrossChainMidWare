@@ -12,6 +12,7 @@ from config import Jsonrpc
 from utils.sim_btc_utils import sim_btc_utils
 from utils.hc_utils import hc_utils
 from utils.usdt_utils import usdt_utils
+from utils.btm_utils import btm_utils
 import time
 logger.info('Start app...')
 app = App
@@ -57,8 +58,19 @@ if app.config.has_key("USDT_HOST") and app.config.has_key("USDT_PORT") and app.c
     usdt_config["vin_size"] = app.config["VIN_SIZE"]
     usdt_config["vout_size"] = app.config["VOUT_SIZE"]
     usdt_config["property_id"] = app.config["USDT_PROPERTYID"]
-
 usdt_plugin = usdt_utils("usdt", usdt_config)
+
+
+btm_config = {}
+# BTM_FEE 单笔BTM交易最大手续费配置
+if app.config.has_key("BTM_HOST") and app.config.has_key("BTM_PORT") and app.config.has_key("BTM_FEE"):
+    btm_config["host"] = app.config["BTM_HOST"]
+    btm_config["port"] = app.config["BTM_PORT"]
+    btm_config["collect_host"] = app.config["BTM_COLLECT_HOST"]
+    btm_config["collect_port"] = app.config["BTM_COLLECT_PORT"]
+    btm_config["fee"] = app.config["BTM_FEE"]
+btm_plugin = btm_utils("btm", btm_config)
+
 
 from service import sim_api
 from service import client_api

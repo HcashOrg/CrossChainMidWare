@@ -154,6 +154,7 @@ class sim_btc_utils:
         vouts = {}
         for addr, num in dest_info.items():
             amount = round(amount + num,8)
+
             vouts[addr]=round(num,8)
 
         txout = sorted(txout, key=lambda d: float(d["amount"]), reverse=True)
