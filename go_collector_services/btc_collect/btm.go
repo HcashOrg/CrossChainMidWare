@@ -79,7 +79,7 @@ func UTXO2Input(u btmUTXO) (*btm_types.TxInput, *btm_txbuilder.SigningInstructio
 	switch address.(type) {
 	case *btm_common.AddressWitnessPubKeyHash:
 		derivedPK := btm_chainkd.XPub{}.PublicKey()
-		fmt.Println("derivedPK:", hex.EncodeToString(derivedPK))
+		//fmt.Println("derivedPK:", hex.EncodeToString(derivedPK))
 		sigInst.WitnessComponents = append(sigInst.WitnessComponents, btm_txbuilder.DataWitness([]byte(derivedPK)))
 
 	case *btm_common.AddressWitnessScriptHash:
