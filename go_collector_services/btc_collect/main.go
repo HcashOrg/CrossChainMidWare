@@ -26,11 +26,11 @@ import (
 	"github.com/golang/protobuf/proto"
 	_"github.com/stackimpact/stackimpact-go"
 	"bytes"
-
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"flag"
 	"strings"
+	btm_consensus "github.com/bytom/consensus"
 )
 
 var(
@@ -59,7 +59,7 @@ var(
 	trx_counts             int32
 	old_chan_height		   int32
 	wg_collect				sync.WaitGroup
-
+	btm_consensus_param     *btm_consensus.Params
 )
 
 
@@ -898,6 +898,11 @@ func handle_block(blockdata_chan chan simplejson.Json,interval int){
 
 			vouts := one_trx[get_json_elem_tag_tx_vout()].([]interface{})
 
+			mux_id := ""
+			if is_chain_btm() {
+				mux_id = one_trx["mux_id"].(string)
+			}
+
 			if !is_chain_btm() {
 				for _, vout_data := range vouts {
 					vout := vout_data.(map[string]interface{})
@@ -946,6 +951,12 @@ func handle_block(blockdata_chan chan simplejson.Json,interval int){
 						continue
 					}
 
+					n, exist := vout["position"]
+					var n_data int64
+					if exist {
+						n_data, _ = n.(json.Number).Int64()
+					}
+
 					affect_address := ""
 					affect_address_if, exist := vout["address"]
 					if exist {
@@ -966,6 +977,10 @@ func handle_block(blockdata_chan chan simplejson.Json,interval int){
 					//插入utxo
 					utxo_prefix := cal_utxo_prefix_for_btm(utxo_id)
 					addr_utxo_prefix := cal_addr_utxo_prefix_for_btm(affect_address, utxo_id)
+
+					//把mux_id 和 position也暂存在control_program中
+					control_program = control_program + "," + mux_id + "," + strconv.Itoa(int(n_data))
+
 					add_utxo(utxo_prefix, value_data, affect_address, addr_utxo_prefix, control_program)
 				}
 			}
@@ -1014,6 +1029,14 @@ func main(){
 		if !exist{
 			fmt.Println("not Support chain type",ChainType)
 			return
+		}
+	}
+
+	if is_chain_btm() {
+		if *paramChainType == "BTM" {
+			btm_consensus_param = &btm_consensus.MainNetParams
+		} else if *paramChainType == "BTM_TEST" {
+			btm_consensus_param = &btm_consensus.TestNetParams
 		}
 	}
 

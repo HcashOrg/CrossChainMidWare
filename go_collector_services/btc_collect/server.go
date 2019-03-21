@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/rpc"
-	"github.com/gorilla/rpc/json"
+	rpc_json "github.com/gorilla/rpc/json"
 	"net/http"
 	"github.com/bytom/crypto/ed25519/chainkd"
 	"config"
@@ -18,52 +18,136 @@ import (
 	pro "protobuf"
 	lnk_util "util"
 	"github.com/kataras/iris/core/errors"
-	vmutil "github.com/bytom/protocol/vm/vmutil"
-	"github.com/bytom/crypto"
-	"github.com/bytom/common"
-	"github.com/bytom/consensus"
+	btm_vmutil "github.com/bytom/protocol/vm/vmutil"
+	btm_crypto "github.com/bytom/crypto"
+	btm_common "github.com/bytom/common"
+	btm_consensus "github.com/bytom/consensus"
+	btm_api "github.com/bytom/api"
+	btm_txbuilder "github.com/bytom/blockchain/txbuilder"
+	btm_types "github.com/bytom/protocol/bc/types"
+	"strings"
 )
 
 var (
 	wg_server sync.WaitGroup
 )
 
-
 type Service struct {
 }
 
 func (s *Service) CreateMultiSig(r *http.Request, args *[]interface{}, reply *map[string]interface{}) error{
-	strPubkeys := (*args)[0].([]interface{})
-	quorum := int((*args)[1].(float64))
+	if !is_chain_btm() {
+		return errors.New("this function only support BTM")
+	} else {
+		strPubkeys := (*args)[0].([]interface{})
+		quorum := int((*args)[1].(float64))
 
-	pubs := make([]chainkd.XPub, 0)
-	for _, strPubkey := range strPubkeys {
-		strPubkeyStr := strPubkey.(string)
-		var pub chainkd.XPub
-		pub.UnmarshalText([]byte(strPubkeyStr))
-		pubs = append(pubs, pub)
+		pubs := make([]chainkd.XPub, 0)
+		for _, strPubkey := range strPubkeys {
+			strPubkeyStr := strPubkey.(string)
+			var pub chainkd.XPub
+			pub.UnmarshalText([]byte(strPubkeyStr))
+			pubs = append(pubs, pub)
+		}
+
+		derivedPKs := chainkd.XPubKeys(pubs)
+		signScript, err := btm_vmutil.P2SPMultiSigProgram(derivedPKs, quorum)
+		if err != nil {
+			return errors.New("P2SPMultiSigProgram fail")
+		}
+		scriptHash := btm_crypto.Sha256(signScript)
+
+		address, err := btm_common.NewAddressWitnessScriptHash(scriptHash, &btm_consensus.ActiveNetParams)
+		if err != nil {
+			return errors.New("NewAddressWitnessScriptHash fail")
+		}
+
+		addressStr := address.EncodeAddress()
+		redeemScriptStr := hex.EncodeToString(signScript)
+
+		(*reply) = make(map[string]interface{})
+		(*reply)["address"] = addressStr
+		(*reply)["redeemScript"] = redeemScriptStr
+
+		return nil
 	}
+}
 
-	derivedPKs := chainkd.XPubKeys(pubs)
-	signScript, err := vmutil.P2SPMultiSigProgram(derivedPKs, quorum)
-	if err != nil {
-		return errors.New("P2SPMultiSigProgram fail")
+func (s *Service) BuildTransaction(r *http.Request, args *[]interface{}, reply* map[string]interface{}) error {
+	if !is_chain_btm() {
+		return errors.New("this function only support BTM")
+	} else {
+		vins := (*args)[0].([]interface{})
+		vouts := (*args)[1].(map[string]interface{})
+
+		builder := &btm_txbuilder.TemplateBuilder{}
+
+		bassetId, err := convertToBCAssetID(btmAssetID)
+		if err != nil {
+			return errors.New("convertToBCAssetID fail: %s" + err.Error())
+		}
+
+		for _, vin := range vins {
+			var utxo btmUTXO
+			var err error
+			utxo.address = vin.(map[string]interface{})["address"].(string)
+			utxo.srcID = vin.(map[string]interface{})["txid"].(string)
+			utxo.program = vin.(map[string]interface{})["scriptPubKey"].(string)
+			utxo.amount, err = strconv.ParseUint(vin.(map[string]interface{})["value"].(string), 10, 64)
+			if err != nil {
+				return errors.New("ParseUint fail: %s" + err.Error())
+			}
+
+			utxo.pos = uint64(vin.(map[string]interface{})["vout"].(float64))
+
+			input, sigInst, err := UTXO2Input(utxo)
+			if err != nil {
+				return errors.New("UTXO2Input fail: %s" + err.Error())
+			}
+
+			if err = builder.AddInput(input, sigInst); err != nil {
+				return errors.New("AddInput fail: %s" + err.Error())
+			}
+		}
+
+		for addr, amount := range vouts {
+			amountValue, err := strconv.ParseUint(amount.(string), 10, 64)
+			if err != nil {
+				return errors.New("ParseUint fail: %s" + err.Error())
+			}
+
+			program, err := getProgramByAddress(addr)
+			if err != nil {
+				return errors.New("getProgramByAddress fail: " + err.Error())
+			}
+
+			out := btm_types.NewTxOutput(bassetId, amountValue, program)
+			if err = builder.AddOutput(out); err != nil {
+				return errors.New("AddOutput fail: %s" + err.Error())
+			}
+		}
+
+		tpl, _, err := builder.Build()
+		if err != nil {
+			return errors.New("Build fail: %s" + err.Error())
+		}
+
+		var txbuilderTpl btm_txbuilder.Template
+		txbuilderTpl.Fee = tpl.Fee
+		txbuilderTpl.Transaction = tpl.Transaction
+		txbuilderTpl.AllowAdditional = tpl.AllowAdditional
+		txbuilderTpl.SigningInstructions = tpl.SigningInstructions
+		estTxGas, err := btm_api.EstimateTxGas(txbuilderTpl)
+		if err != nil {
+			return errors.New("EstimateTxGas fail: %s" + err.Error())
+		}
+
+		(*reply) = make(map[string]interface{})
+		(*reply)["trx"] = tpl
+		(*reply)["est_fee"] = estTxGas.TotalNeu
+
+		return nil
 	}
-	scriptHash := crypto.Sha256(signScript)
-
-	address, err := common.NewAddressWitnessScriptHash(scriptHash, &consensus.ActiveNetParams)
-	if err != nil {
-		return errors.New("NewAddressWitnessScriptHash fail")
-	}
-
-	addressStr := address.EncodeAddress()
-	redeemScriptStr := hex.EncodeToString(signScript)
-
-	(*reply) = make(map[string]interface{})
-	(*reply)["address"] = addressStr
-	(*reply)["redeemScript"] = redeemScriptStr
-
-	return nil
 }
 
 func (s *Service) GetAddressHistory(r *http.Request, args *string, reply *[]string) error {
@@ -217,17 +301,24 @@ func (s *Service) ListUnSpent(r *http.Request, args *string, reply *[]map[string
 			}
 		}
 		tmp_map := make(map[string]interface{})
-		txid,vout := "", 0
+		txid,vout,script := "", 0, ""
 		if !is_chain_btm() {
 			txid,vout = lnk_util.SplitAddrUtxoPrefix(k)
+			script = *utxo_obj.ScriptPubKey
 		}else {
-			// For BTM, use utxoid
-			txid = lnk_util.SplitAddrUtxoPrefixForBtm(k)
+			// For BTM, use mux_id and position
+			strlist := strings.Split(*utxo_obj.ScriptPubKey,",")
+			if len(strlist) != 3 {
+				continue
+			}
+			script = strlist[0]
+			txid = strlist[1]
+			vout, _ = strconv.Atoi(strlist[2])
 		}
 		tmp_map["txid"] = txid
 		tmp_map["vout"] = vout
 		tmp_map["address"] = *utxo_obj.Address
-		tmp_map["scriptPubKey"] = *utxo_obj.ScriptPubKey
+		tmp_map["scriptPubKey"] = script
 		tmp_map["value"] = *utxo_obj.Value
 		//bak_map[index] = tmp_map
 		//index = index +1
@@ -235,7 +326,7 @@ func (s *Service) ListUnSpent(r *http.Request, args *string, reply *[]map[string
 		//	break
 		//}
 		bak_map = append(bak_map, tmp_map)
-		if len(bak_map) > 1500 {
+		if len(bak_map) >= 1500 {
 			break
 		}
 	}
@@ -303,12 +394,11 @@ func (s *Service) GetBalance(r *http.Request, args *string, reply *interface{}) 
 }
 
 
-
 func rpcServer(args ...interface{}) {
 	defer wg_server.Done()
 	rpcServer := rpc.NewServer()
-	rpcServer.RegisterCodec(json.NewCodec(), "application/json")
-	rpcServer.RegisterCodec(json.NewCodec(), "application/json;charset=UTF-8")
+	rpcServer.RegisterCodec(rpc_json.NewCodec(), "application/json")
+	rpcServer.RegisterCodec(rpc_json.NewCodec(), "application/json;charset=UTF-8")
 
 	rpcService := new(Service)
 	rpcServer.RegisterService(rpcService, "")
