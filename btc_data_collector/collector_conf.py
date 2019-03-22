@@ -64,6 +64,16 @@ class HCCollectorConfig(CollectorConfig):
     SAFE_BLOCK_FIELD = "hcsafeblock"
     MULTISIG_VERSION = 196
 
+class BTMCollectorConfig(CollectorConfig):
+    ASSET_SYMBOL = "HC"
+    RPC_HOST = 'btm_wallet'
+    RPC_PORT = 9888
+    SYNC_STATE_FIELD = "btmsyncstate"
+    SYNC_BLOCK_NUM = "btmsyncblocknum"
+    SAFE_BLOCK_FIELD = "btmsafeblock"
+
+
+
 
 
 
