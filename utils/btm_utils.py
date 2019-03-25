@@ -66,7 +66,13 @@ class btm_utils:
     def btm_get_balance(self, addr):
         resp = self.collect_http_request("Service.GetBalance", [addr])
         if "result" in resp and resp.get("result") is not None:
-            return str(resp["result"])
+            s = str(resp["result"])
+            balanceStr = ""
+            if len(s) <= 8:
+                balanceStr = "0." + "0" * (8 - len(s)) + s
+            else:
+                balanceStr = s[:-8] + "." + s[-8:]
+            return balanceStr
         else:
             return "0"
 
@@ -177,7 +183,7 @@ class btm_utils:
         bak_index = -1
         use_idx = []
 
-        if len(txout) > 30:
+        if len(txout) > 18:
             for i in range(len(txout)):
                 if self.btm_get_amount_value(txout[i].get("amount")) >= all_need_amount:
                     bak_index = i
@@ -196,7 +202,7 @@ class btm_utils:
                 sum = sum + self.btm_get_amount_value(txout[i].get("amount"))
                 vin_need.append(txout[i])
                 use_idx.append(i)
-        if len(txout) > 30 and len(vin_need) < 10:
+        if len(txout) > 18 and len(vin_need) < 10:
             for i in range(10 - len(vin_need)):
                 cur_idx = len(txout) - i - 1
                 if cur_idx not in use_idx:

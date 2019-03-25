@@ -531,12 +531,22 @@ class BTCCoinTxCollector(CoinTxCollector):
 
         # trx_data["trxTime"] = datetime.utcfromtimestamp(base_trx_data['time']).strftime("%Y-%m-%d %H:%M:%S")
         # trx_data["createtime"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        def to_btm_precision_str(v):
+            retStr = ""
+            s = str(v)
+            if len(s) <= 8:
+                retStr = "0." + "0" * (8 - len(s)) + s
+            else:
+                retStr = s[:-8] + "." + s[-8:]
+            return retStr
+
         if trx_data['type'] == 2 or trx_data['type'] == 0:
             deposit_data = {
                 "txid": base_trx_data["id"],
                 "from_account": in_set.keys()[0],
                 "to_account": multisig_out_addr,
-                "amount": "%d" % (out_set.values()[0]),
+                "amount": "%s" % to_btm_precision_str(out_set.values()[0]),
                 "asset_symbol": self.config.ASSET_SYMBOL,
                 "blockNum": block_num,
                 "chainId": self.config.ASSET_SYMBOL.lower()
@@ -548,7 +558,7 @@ class BTCCoinTxCollector(CoinTxCollector):
                     "txid": base_trx_data["id"],
                     "from_account": multisig_in_addr,
                     "to_account": k,
-                    "amount": "%d" % (v),
+                    "amount": "%s" % to_btm_precision_str(v),
                     "asset_symbol": self.config.ASSET_SYMBOL,
                     "blockNum": block_num,
                     "chainId": self.config.ASSET_SYMBOL.lower()
