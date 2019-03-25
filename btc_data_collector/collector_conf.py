@@ -65,8 +65,9 @@ class HCCollectorConfig(CollectorConfig):
     MULTISIG_VERSION = 196
 
 class BTMCollectorConfig(CollectorConfig):
-    ASSET_SYMBOL = "HC"
-    RPC_HOST = 'btm_wallet'
+    ASSET_SYMBOL = "BTM"
+    # RPC_HOST = 'btm_wallet'
+    RPC_HOST = '127.0.0.1'
     RPC_PORT = 9888
     SYNC_STATE_FIELD = "btmsyncstate"
     SYNC_BLOCK_NUM = "btmsyncblocknum"

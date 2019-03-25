@@ -21,7 +21,6 @@ import (
 	btm_vmutil "github.com/bytom/protocol/vm/vmutil"
 	btm_crypto "github.com/bytom/crypto"
 	btm_common "github.com/bytom/common"
-	btm_consensus "github.com/bytom/consensus"
 	btm_api "github.com/bytom/api"
 	btm_txbuilder "github.com/bytom/blockchain/txbuilder"
 	btm_types "github.com/bytom/protocol/bc/types"
@@ -57,7 +56,7 @@ func (s *Service) CreateMultiSig(r *http.Request, args *[]interface{}, reply *ma
 		}
 		scriptHash := btm_crypto.Sha256(signScript)
 
-		address, err := btm_common.NewAddressWitnessScriptHash(scriptHash, &btm_consensus.ActiveNetParams)
+		address, err := btm_common.NewAddressWitnessScriptHash(scriptHash, btm_consensus_param)
 		if err != nil {
 			return errors.New("NewAddressWitnessScriptHash fail")
 		}

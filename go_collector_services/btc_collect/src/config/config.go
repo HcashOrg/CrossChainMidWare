@@ -71,7 +71,7 @@ var RpcServerConfig = ServerConfig{RpcListenEndPoint:map[string]string{
 		"HC":"http://hc_wallet",
 		"HC_TEST":"http://hc_wallet",
 		"BTM":"http://btm_wallet",
-		"BTM_TEST":"http://192.168.1.107"},
+		"BTM_TEST":"http://127.0.0.1"},
 		//"BTM_TEST":"http://btm_wallet"},
 	SourceDataPort:map[string]string{
 		"BTC":"60011",
@@ -126,8 +126,8 @@ var RpcServerConfig = ServerConfig{RpcListenEndPoint:map[string]string{
 		"LTC_TEST":2,
 		"HC":6,
 		"HC_TEST":6,
-		"BTM":6,
-		"BTM_TEST":6},
+		"BTM":2,
+		"BTM_TEST":1},
 	MULTISIGVERSION:map[string]int{
 		"BTC":5,
 		"BTC_TEST":196,

@@ -1036,7 +1036,8 @@ func main(){
 		if *paramChainType == "BTM" {
 			btm_consensus_param = &btm_consensus.MainNetParams
 		} else if *paramChainType == "BTM_TEST" {
-			btm_consensus_param = &btm_consensus.TestNetParams
+			//btm_consensus_param = &btm_consensus.TestNetParams
+			btm_consensus_param = &btm_consensus.SoloNetParams
 		}
 	}
 
