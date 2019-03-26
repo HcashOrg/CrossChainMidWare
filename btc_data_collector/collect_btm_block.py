@@ -10,7 +10,7 @@ from collect_btc_block import BTCCoinTxCollector
 class BTMCoinTxCollecter(BTCCoinTxCollector):
     def __init__(self, db):
         super(BTMCoinTxCollecter, self).__init__(db)
-        self.t_multisig_address = self.db.b_hc_multisig_address
+        self.t_multisig_address = self.db.b_btm_multisig_address
         self.config = BTMCollectorConfig()
         conf = {"host": self.config.RPC_HOST, "port": self.config.RPC_PORT}
         self.wallet_api = WalletApi(self.config.ASSET_SYMBOL, conf)
