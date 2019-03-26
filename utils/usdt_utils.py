@@ -139,7 +139,7 @@ class usdt_utils:
     def omni_get_balance(self, addr):
         resp = self.http_request("omni_getbalance", [addr,self.config["property_id"]])
         if resp.has_key("result") and resp["result"] is not None and resp["result"].has_key("balance"):
-            return str(resp["result"]["balance"])
+            return "%.08f" % (resp["result"]["balance"])
         else:
             return "0"
 

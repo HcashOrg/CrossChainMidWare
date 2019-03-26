@@ -66,7 +66,7 @@ class btm_utils:
     def btm_get_balance(self, addr):
         resp = self.collect_http_request("Service.GetBalance", [addr])
         if "result" in resp and resp.get("result") is not None:
-            s = str(resp["result"])
+            s = "%d" % (resp["result"])
             balanceStr = ""
             if len(s) <= 8:
                 balanceStr = "0." + "0" * (8 - len(s)) + s
