@@ -147,7 +147,7 @@ class hzkConfig(Config) :
 
 
 class MuConfig(Config):
-    MONGO_HOST = '192.168.1.121'
+    MONGO_HOST = 'localhost'
     MONGO_PORT = 27017
     MONGO_NAME = 'chaindb'
     MONGO_USER = 'chaindb_user'

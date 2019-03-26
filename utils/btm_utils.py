@@ -176,8 +176,19 @@ class btm_utils:
         amount = 0
         vouts = {}
         for addr, num in dest_info.items():
-            amount = amount + num
-            vouts[addr] = num
+            num_value = 0
+            if isinstance(num, int) or isinstance(num, long):
+                num_value = num * 100000000
+            elif isinstance(num, float):
+                num_value = int(math.floor(num * 100000000 + 0.5))
+            elif isinstance(num, str):
+                num_value = int(math.floor(float(num) * 100000000 + 0.5))
+            elif isinstance(num, unicode):
+                num_value = int(math.floor(float(num.encode("utf8")) * 100000000 + 0.5))
+            else:
+                return ""
+            amount = amount + num_value
+            vouts[addr] = num_value
         txout = sorted(txout, key=lambda d: self.btm_get_amount_value(d.get("amount")), reverse=True)
         all_need_amount = amount + fee
         bak_index = -1

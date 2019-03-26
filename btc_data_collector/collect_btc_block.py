@@ -80,6 +80,7 @@ class CacheManager(object):
         logging.info(sync_key + ": " + str(block_num))
 
        #Update sync block number finally.
+
         db.b_config.update({"key": sync_key}, {
             "$set": {"key": sync_key, "value": str(block_num)}})
 
