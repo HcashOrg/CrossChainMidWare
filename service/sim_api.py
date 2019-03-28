@@ -39,7 +39,7 @@ def zchain_crypt_sign(chainId, addr, message):
     elif chainId == "hc":
         signed_message = hc_plugin.hc_sign_message(addr, message)
     else:
-        return error_utils.invalid_chainid_type()
+        return error_utils.invalid_chainid_type(chainId)
 
     if signed_message == "":
         return error_utils.error_response("Cannot sign message.")
@@ -63,7 +63,7 @@ def zchain_Trans_sign(chainId,addr, trx_hex, redeemScript):
     elif chainId == "hc":
         signed_trx = hc_plugin.hc_sign_transaction(addr, redeemScript,trx_hex)
     else:
-        return error_utils.invalid_chainid_type()
+        return error_utils.invalid_chainid_type(chainId)
 
     if signed_trx == "":
         return error_utils.error_response("Cannot sign trans.")
@@ -126,7 +126,7 @@ def zchain_trans_broadcastTrx(chainId, trx):
     elif 'erc' in chainId.lower():
         result = eth_utils.eth_send_raw_transaction(trx)
     else:
-        return error_utils.invalid_chainid_type()
+        return error_utils.invalid_chainid_type(chainId)
 
     db.get_collection("b_broadcast_trans_cache").insert_one(
         {"chainId": chainId, "trx": trxId, "effectiveTime": int(time.time()), "result": result})
@@ -200,7 +200,7 @@ def zchain_addr_import_addrs(chainId,addrs):
                                                  {"$set": {'isContractAddress': False}})
                 eth_utils.add_guard_address(addr)
         else:
-            return error_utils.invalid_chainid_type()
+            return error_utils.invalid_chainid_type(chainId)
     return {
         'chainId': chainId,
         'data': ""
@@ -261,7 +261,7 @@ def zchain_addr_importaddr(chainId, addr):
                                              {"$set": {'isContractAddress': False}})
             eth_utils.add_guard_address(addr)
     else:
-        return error_utils.invalid_chainid_type()
+        return error_utils.invalid_chainid_type(chainId)
     return {
         'chainId': chainId,
         'data': ""
@@ -301,7 +301,7 @@ def zchain_trans_getEthTrxCount(chainId, addr, indexFormat):
     elif 'eth' == chainId:
         result = eth_utils.eth_get_trx_count(addr, indexFormat)
     else:
-        return error_utils.invalid_chainid_type()
+        return error_utils.invalid_chainid_type(chainId)
     if result == {}:
         return error_utils.error_response("Cannot eth trx count.")
     #print result
@@ -326,7 +326,7 @@ def zchain_query_getBlockHeight(chainId):
         else:
             result=0
     else:
-        return error_utils.invalid_chainid_type()
+        return error_utils.invalid_chainid_type(chainId)
     if result == {}:
         return error_utils.error_response("Cannot eth trx count.")
     #print result
@@ -345,7 +345,7 @@ def zchain_query_getTrxHistoryByAddress(chainId,address,startBlock,endBlock):
     elif 'eth' == chainId:
         result = eth_utils.eth_get_trx_history_by_address(address,startBlock,endBlock)
     else:
-        return error_utils.invalid_chainid_type()
+        return error_utils.invalid_chainid_type(chainId)
     #print result
     return result
 
@@ -362,7 +362,7 @@ def zchain_query_getEthTrx(chainId,trxid):
     elif 'eth' == chainId:
         result = eth_utils.eth_get_trx(trxid)
     else:
-        return error_utils.invalid_chainid_type()
+        return error_utils.invalid_chainid_type(chainId)
     #print result
     return result
 
@@ -382,7 +382,7 @@ def zchain_query_getUtxoCount(chainId,address):
     elif chainId == "btm":
         result = btm_plugin.btm_get_trx_out(address)
     else:
-        return error_utils.invalid_chainid_type()
+        return error_utils.invalid_chainid_type(chainId)
     #print result
     return len(result)
 
@@ -404,7 +404,7 @@ def zchain_trans_createTrx(chainId, from_addr,dest_info):
     elif chainId == "btm":
         result = btm_plugin.btm_create_transaction(from_addr, dest_info)
     else:
-        return error_utils.invalid_chainid_type()
+        return error_utils.invalid_chainid_type(chainId)
 
     if result == {}:
         return error_utils.error_response("Cannot create transaction.")
@@ -430,7 +430,7 @@ def zchain_trans_CombineTrx(chainId, transactions):
     elif chainId == "usdt":
         result = sim_btc_plugin["btc"].sim_btc_combine_trx(transactions)
     else:
-        return error_utils.invalid_chainid_type()
+        return error_utils.invalid_chainid_type(chainId)
 
     if result == "":
         return error_utils.error_response("Cannot combine transaction.")
@@ -458,7 +458,7 @@ def zchain_trans_decodeTrx(chainId, trx_hex):
     elif chainId == "btm":
         result = btm_plugin.btm_decode_hex_transaction(trx_hex)
     else:
-        return error_utils.invalid_chainid_type()
+        return error_utils.invalid_chainid_type(chainId)
 
     if result == "":
         return error_utils.error_response("Cannot create transaction.")
@@ -535,7 +535,7 @@ def zchain_trans_queryTrx(chainId, trxid):
         if source != None and respit != None:
             result = so_re_dic
     else:
-        return error_utils.invalid_chainid_type()
+        return error_utils.invalid_chainid_type(chainId)
 
     if result == "":
         return error_utils.error_response("Cannot query transaction.")
@@ -634,7 +634,7 @@ def zchain_trans_getTrxOuts(chainId, addr):
     elif chainId == "hc":
         result = hc_plugin.hc_query_tx_out(addr)
     else:
-        return error_utils.invalid_chainid_type()
+        return error_utils.invalid_chainid_type(chainId)
 
     return {
         'chainId': chainId,
@@ -669,7 +669,7 @@ def zchain_crypt_verify_message(chainId, addr, message, signature):
         #print 1
         result = eth_utils.eth_verify_signed_message(addr, message, signature)
     else:
-        return error_utils.invalid_chainid_type()
+        return error_utils.invalid_chainid_type(chainId)
     if result:
         db.get_collection("b_verify_cache").insert_one(
             {"chainId": chainId, "addr": addr, "message": message, "signature": signature})
@@ -734,7 +734,7 @@ def zchain_multisig_create(chainId, addrs, amount):
             data = {"address": address, "redeemScript": redeemScript, "addr_type": 0}
             db.get_collection("b_" + chainId + "_multisig_address").insert_one(data)
     else:
-        return error_utils.invalid_chainid_type()
+        return error_utils.invalid_chainid_type(chainId)
 
     return {
         'chainId': chainId,
@@ -770,7 +770,7 @@ def zchain_address_validate(chainId,addr):
             "valid": result
         }
     else:
-        return error_utils.invalid_chainid_type()
+        return error_utils.invalid_chainid_type(chainId)
 
     return {
         "chainId":chainId,
@@ -815,7 +815,7 @@ def zchain_multisig_add(chainId, addrs, amount, addrType):
                 db.get_collection("b_hc_multisig_address").insert_one(data)
 
     else:
-        return error_utils.invalid_chainid_type()
+        return error_utils.invalid_chainid_type(chainId)
 
     return {
         'chainId': chainId,
