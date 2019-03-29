@@ -523,7 +523,6 @@ def zchain_trans_queryTrx(chainId, trxid):
 
     elif chainId == "btm":
         result = btm_plugin.btm_get_transaction(trxid)
-        print result
         if "outputs" in result:
             is_cache = True
 

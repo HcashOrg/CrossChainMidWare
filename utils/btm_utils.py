@@ -94,6 +94,7 @@ class btm_utils:
 
         args = "%d|%s" % (block_height,trxid)
         resp = self.collect_http_request("Service.GetTrx", [args])
+
         if "result" in resp and resp.get("result") is not None:
             return resp["result"]
         else:

@@ -78,8 +78,10 @@ func UTXO2Input(u btmUTXO) (*btm_types.TxInput, *btm_txbuilder.SigningInstructio
 
 	switch address.(type) {
 	case *btm_common.AddressWitnessPubKeyHash:
-		derivedPK := btm_chainkd.XPub{}.PublicKey()
+		xPub := btm_chainkd.XPub{}
+		derivedPK := xPub.PublicKey()
 		//fmt.Println("derivedPK:", hex.EncodeToString(derivedPK))
+		sigInst.AddRawWitnessKeys([]btm_chainkd.XPub{xPub}, [][]byte{}, 1)
 		sigInst.WitnessComponents = append(sigInst.WitnessComponents, btm_txbuilder.DataWitness([]byte(derivedPK)))
 
 	case *btm_common.AddressWitnessScriptHash:
@@ -92,6 +94,7 @@ func UTXO2Input(u btmUTXO) (*btm_types.TxInput, *btm_txbuilder.SigningInstructio
 		if err != nil {
 			return nil, nil, err
 		}
+		sigInst.AddRawWitnessKeys(derivedXPubs, [][]byte{}, 11)
 		sigInst.WitnessComponents = append(sigInst.WitnessComponents, btm_txbuilder.DataWitness(script))
 
 	default:

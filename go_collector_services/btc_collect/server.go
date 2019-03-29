@@ -131,6 +131,9 @@ func (s *Service) BuildTransaction(r *http.Request, args *[]interface{}, reply* 
 			return errors.New("Build fail: %s" + err.Error())
 		}
 
+		//tplContent, _ := json.Marshal(tpl)
+		//fmt.Println("tpl:", string(tplContent))
+
 		var txbuilderTpl btm_txbuilder.Template
 		txbuilderTpl.Fee = tpl.Fee
 		txbuilderTpl.Transaction = tpl.Transaction
