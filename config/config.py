@@ -154,7 +154,7 @@ class MuConfig(Config):
     MONGO_PASS = 'yqr.1010'
     BTM_HOST = "192.168.1.107"
     BTM_PORT = 9888
-    BTM_FEE = 20000000
+    BTM_FEE = 100000000
     BTM_COLLECT_HOST = "192.168.1.107"
     BTM_COLLECT_PORT = 5451
 

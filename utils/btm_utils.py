@@ -195,7 +195,7 @@ class btm_utils:
         bak_index = -1
         use_idx = []
 
-        if len(txout) > 18:
+        if len(txout) > 20:
             for i in range(len(txout)):
                 if self.btm_get_amount_value(txout[i].get("amount")) >= all_need_amount:
                     bak_index = i
@@ -214,13 +214,16 @@ class btm_utils:
                 sum = sum + self.btm_get_amount_value(txout[i].get("amount"))
                 vin_need.append(txout[i])
                 use_idx.append(i)
-        if len(txout) > 18 and len(vin_need) < 10:
-            for i in range(10 - len(vin_need)):
+        if len(txout) > 20 and len(vin_need) < 6:
+            for i in range(6 - len(vin_need)):
                 cur_idx = len(txout) - i - 1
                 if cur_idx not in use_idx:
                     sum = sum + self.btm_get_amount_value(txout[cur_idx].get("amount"))
                     vin_need.append(txout[cur_idx])
                     use_idx.append(cur_idx)
+
+        if len(vin_need) > 8:
+            return ""
 
         if sum < all_need_amount:
             return ""
@@ -255,6 +258,8 @@ class btm_utils:
 
         estimate_fee = trx_tpl.get("est_fee")
 
+        print "estimate_fee", estimate_fee
+
         # 使用预估手续费上浮10%作为手续费
         if float(estimate_fee * 1.1) >= float(fee):
             return ""
@@ -264,6 +269,8 @@ class btm_utils:
         vouts[from_addr] = str(int(vouts[from_addr]) + needchange2)
 
         trx_tpl = self.btm_build_spend_utxo_transaction(vins,vouts)
+
+        print trx_tpl
 
         if trx_tpl.get("trx").get("raw_transaction") is not None:
             trx_hex = trx_tpl["trx"]['raw_transaction']
