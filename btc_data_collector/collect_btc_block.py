@@ -31,7 +31,7 @@ from wallet_api import WalletApi
 from Queue import Queue
 
 
-gLock = threading.Lock()
+# gLock = threading.Lock()
 q = Queue()
 
 
@@ -80,6 +80,7 @@ class CacheManager(object):
         logging.info(sync_key + ": " + str(block_num))
 
        #Update sync block number finally.
+
         db.b_config.update({"key": sync_key}, {
             "$set": {"key": sync_key, "value": str(block_num)}})
 
@@ -169,21 +170,31 @@ class CollectBlockThread(threading.Thread):
 
     #采集块数据
     def collect_block(self, db_pool, block_num_fetch):
-        ret1 = self.wallet_api.http_request("getblockhash", [block_num_fetch])
-        if ret1['result'] == None:
-            raise Exception("blockchain_get_block error")
-        block_hash = ret1['result']
-        if self.config.ASSET_SYMBOL == "HC":
-            ret2 = self.wallet_api.http_request("getblock", [str(block_hash)])
+        if self.wallet_api.name == "BTM":
+            ret1 = self.wallet_api.http_request("get-block", {"block_height": block_num_fetch})
+            if ret1.get("data") is None:
+                raise Exception("blockchain_get_block error")
+            json_data = ret1["data"]
+            block_info = BlockInfoBtc()
+            block_info.from_block_resp_btm(json_data)
+            logging.debug("Collect block [num:%d], [block_height:%d], [tx_num:%d]" % (block_num_fetch, block_num_fetch, len(json_data["transactions"])))
+            return block_info
         else:
-            ret2 = self.wallet_api.http_request("getblock", [str(block_hash), 2])
-        if ret2['result'] == None:
-            raise Exception("blockchain_get_block error")
-        json_data = ret2['result']
-        block_info = BlockInfoBtc()
-        block_info.from_block_resp(json_data)
-        logging.debug("Collect block [num:%d], [block_hash:%s], [tx_num:%d]" % (block_num_fetch, block_hash, len(json_data["tx"])))
-        return block_info
+            ret1 = self.wallet_api.http_request("getblockhash", [block_num_fetch])
+            if ret1['result'] == None:
+                raise Exception("blockchain_get_block error")
+            block_hash = ret1['result']
+            if self.config.ASSET_SYMBOL == "HC":
+                ret2 = self.wallet_api.http_request("getblock", [str(block_hash)])
+            else:
+                ret2 = self.wallet_api.http_request("getblock", [str(block_hash), 2])
+            if ret2['result'] == None:
+                raise Exception("blockchain_get_block error")
+            json_data = ret2['result']
+            block_info = BlockInfoBtc()
+            block_info.from_block_resp(json_data)
+            logging.debug("Collect block [num:%d], [block_hash:%s], [tx_num:%d]" % (block_num_fetch, block_hash, len(json_data["tx"])))
+            return block_info
 
 
     @staticmethod
@@ -194,8 +205,12 @@ class CollectBlockThread(threading.Thread):
 
 
     def _get_latest_block_num(self):
-        ret = self.wallet_api.http_request("getblockcount", [])
-        real_block_num = ret.get('result', None)
+        if self.wallet_api.name == "BTM":
+            ret = self.wallet_api.http_request("get-block-count", [])
+            real_block_num = ret.get('data').get('block_count', None)
+        else:
+            ret = self.wallet_api.http_request("getblockcount", [])
+            real_block_num = ret.get('result', None)
         if real_block_num is None:
             return None
         safe_block = 6
@@ -250,7 +265,10 @@ class BTCCoinTxCollector(CoinTxCollector):
                     if block.block_num == 0:
                         continue
                     trx_data = self.get_transaction_data(trx_data)
-                pretty_trx_info = self.collect_pretty_transaction(self.db, trx_data, block.block_num)
+                if self.wallet_api.name == "BTM":
+                    pretty_trx_info = self.collect_pretty_transaction_btm(self.db, trx_data, block.block_num)
+                else:
+                    pretty_trx_info = self.collect_pretty_transaction(self.db, trx_data, block.block_num)
             self.sync_status = self.collect_thread.get_sync_status()
             if  self.sync_status:
                 logging.debug(str(count) + " blocks processed, flush to db")
@@ -407,6 +425,150 @@ class BTCCoinTxCollector(CoinTxCollector):
         #self.cache.raw_transaction_cache.append(trx_data)
         return trx_data
 
+    def collect_pretty_transaction_btm(self, db_pool, base_trx_data, block_num):
+        trx_data = {}
+        trx_data["chainId"] = self.config.ASSET_SYMBOL.lower()
+        trx_data["trxid"] = base_trx_data["id"]
+        trx_data["blockNum"] = block_num
+        vin = base_trx_data["inputs"]
+        vout = base_trx_data["outputs"]
+        trx_data["vout"] = []
+        trx_data["vin"] = []
+        out_set = {}
+        in_set = {}
+        multisig_in_addr = ""
+        multisig_out_addr = ""
+        is_valid_tx = True
+
+        """
+        Only 3 types of transactions will be filtered out and be record in database.
+        1. deposit transaction (vin contains only one no LINK address and vout contains only one LINK address)
+        2. withdraw transaction (vin contains only one LINK address and vout contains no other LINK address)
+        3. transaction between hot-wallet and cold-wallet (vin contains only one LINK address and vout contains only one other LINK address)
+
+        Check logic:
+        1. check all tx in vin and store addresses & values (if more than one LINK address set invalid)
+        2. check all tx in vout and store all non-change addresses & values (if more than one LINK address set invalid)
+        3. above logic filter out the situation - more than one LINK address in vin or vout but there is one condition
+           should be filter out - more than one normal address in vin for deposit transaction
+        4. then we can record the transaction according to transaction type
+           only one other addres in vin and only one LINK address in vout - deposit
+           only one LINK addres in vin and only other addresses in vout - withdraw
+           only one LINK addres in vin and only one other LINK address in vout - transaction between hot-wallet and cold-wallet
+           no LINK address in vin and no LINK address in vout - transaction that we don't care about, record nothing
+        5. record original transaction in raw table if we care about it.
+        """
+        for trx_in in vin:
+            vin_type = trx_in.get("type")
+            if vin_type != "spend":
+                continue
+            if not trx_in.has_key("address"):
+                continue
+            asset_id = trx_in.get("asset_id")
+            if asset_id != "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff":
+                continue
+
+            in_address = trx_in.get("address")
+            if (in_set.has_key(in_address)):
+                in_set[in_address] += trx_in["amount"]
+            else:
+                in_set[in_address] = trx_in["amount"]
+            trx_data["vin"].append(
+                {"txid": "", "vout": 0, "value": trx_in["amount"], "address": in_address})
+            if in_address in self.multisig_address_cache:
+                if multisig_in_addr == "":
+                    multisig_in_addr = in_address
+                else:
+                    if multisig_in_addr != in_address:
+                        is_valid_tx = False
+        for trx_out in vout:
+            # Check vout
+            if trx_out.has_key("address"):
+                out_address = trx_out["address"]
+                trx_data["vout"].append(
+                    {"value": trx_out["amount"], "n": trx_out["position"], "scriptPubKey": trx_out["control_program"],
+                     "address": out_address})
+
+                vout_type = trx_out.get("type")
+                if vout_type != "control":
+                    continue
+                asset_id = trx_out.get("asset_id")
+                if asset_id != "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff":
+                    continue
+
+                if in_set.has_key(out_address):  # remove change
+                    continue
+                if (out_set.has_key(out_address)):
+                    out_set[out_address] += trx_out["amount"]
+                else:
+                    out_set[out_address] = trx_out["amount"]
+                if out_address in self.multisig_address_cache:
+                    if multisig_out_addr == "":
+                        multisig_out_addr = out_address
+                    else:
+                        is_valid_tx = False
+
+        if not multisig_in_addr == "" and not multisig_out_addr == "":  # maybe transfer between hot-wallet and cold-wallet
+            if not is_valid_tx:
+                logging.error("Invalid transaction between hot-wallet and cold-wallet")
+                trx_data['type'] = -3
+            else:
+                trx_data['type'] = 0
+        elif not multisig_in_addr == "":  # maybe withdraw
+            if not is_valid_tx:
+                logging.error("Invalid withdraw transaction")
+                trx_data['type'] = -1
+            else:
+                trx_data['type'] = 1
+        elif not multisig_out_addr == "":  # maybe deposit
+            if not is_valid_tx or not len(in_set) == 1:
+                logging.error("Invalid deposit transaction")
+                trx_data['type'] = -2
+            else:
+                trx_data['type'] = 2
+        else:
+            logging.debug("Nothing to record")
+            return
+
+        # trx_data["trxTime"] = datetime.utcfromtimestamp(base_trx_data['time']).strftime("%Y-%m-%d %H:%M:%S")
+        # trx_data["createtime"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        def to_btm_precision_str(v):
+            retStr = ""
+            s = str(v)
+            if len(s) <= 8:
+                retStr = "0." + "0" * (8 - len(s)) + s
+            else:
+                retStr = s[:-8] + "." + s[-8:]
+            return retStr
+
+        if trx_data['type'] == 2 or trx_data['type'] == 0:
+            deposit_data = {
+                "txid": base_trx_data["id"],
+                "from_account": in_set.keys()[0],
+                "to_account": multisig_out_addr,
+                "amount": "%s" % to_btm_precision_str(out_set.values()[0]),
+                "asset_symbol": self.config.ASSET_SYMBOL,
+                "blockNum": block_num,
+                "chainId": self.config.ASSET_SYMBOL.lower()
+            }
+            self.cache.deposit_transaction_cache.append(deposit_data)
+        elif trx_data['type'] == 1:
+            for k, v in out_set.items():
+                withdraw_data = {
+                    "txid": base_trx_data["id"],
+                    "from_account": multisig_in_addr,
+                    "to_account": k,
+                    "amount": "%s" % to_btm_precision_str(v),
+                    "asset_symbol": self.config.ASSET_SYMBOL,
+                    "blockNum": block_num,
+                    "chainId": self.config.ASSET_SYMBOL.lower()
+                }
+                self.cache.withdraw_transaction_cache.append(withdraw_data)
+
+        # logging.info("add raw transaction")
+        # self.cache.raw_transaction_cache.append(trx_data)
+        return trx_data
 
     #def _cal_UTXO_prefix(self, txid, vout):
         #return self.config.ASSET_SYMBOL + txid + "I" + str(vout)

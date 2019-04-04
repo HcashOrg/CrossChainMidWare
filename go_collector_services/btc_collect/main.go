@@ -26,11 +26,11 @@ import (
 	"github.com/golang/protobuf/proto"
 	_"github.com/stackimpact/stackimpact-go"
 	"bytes"
-
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"flag"
 	"strings"
+	btm_consensus "github.com/bytom/consensus"
 )
 
 var(
@@ -43,8 +43,10 @@ var(
 	unspent_utxo_db        *leveldb.DB
 	addr_unspent_utxo_db        *leveldb.DB
 	config_db              *leveldb.DB
+	trxid_blockheight_db   *leveldb.DB
 	utxo_cache             map[string]interface{}
 	addr_utxo_cache             map[string]interface{}
+	trxid_blockheight_cache map[string]int
 	utxo_spent_cache       []string
 	addr_utxo_spent_cache       []string
 	trxId_cache				[][]byte
@@ -57,7 +59,7 @@ var(
 	trx_counts             int32
 	old_chan_height		   int32
 	wg_collect				sync.WaitGroup
-
+	btm_consensus_param     *btm_consensus.Params
 )
 
 
@@ -515,6 +517,26 @@ func flush_db(){
 	}
 	address_trx_db.Write(&tmp_batch,nil)
 	tmp_batch.Reset()
+
+	if is_chain_btm() {
+		// trxid_blockheight_cache
+		index = 0
+
+		batch_interval = 300
+		tmp_batch = leveldb.Batch{}
+
+		for k, v := range trxid_blockheight_cache {
+			index ++
+			tmp_batch.Put([]byte(k), []byte(strconv.Itoa(v)))
+			if index%batch_interval == 0 {
+				trxid_blockheight_db.Write(&tmp_batch, nil)
+				tmp_batch.Reset()
+			}
+		}
+		trxid_blockheight_db.Write(&tmp_batch, nil)
+		tmp_batch.Reset()
+	}
+
 	fs_update()
 	fmt.Println(strconv.Itoa(last_height))
 	wo :=opt.WriteOptions{}
@@ -526,6 +548,7 @@ func flush_db(){
 	fmt.Println("flush db add utxo count",len(utxo_cache)," spent utxo count",len(utxo_spent_cache)," address_trx count: ",len(write_address_trx_data)," cost time:",time.Now().Sub(bak_time).Seconds())
 	utxo_cache = make(map[string]interface{})
 	addr_utxo_cache = make(map[string]interface{})
+	trxid_blockheight_cache = make(map[string]int,0)
 	utxo_spent_cache = make([]string,0,2000000)
 	addr_utxo_spent_cache = make([]string,0,2000000)
 	write_address_trx_data = make(map[string]interface{},0)
@@ -772,6 +795,10 @@ func handle_block(blockdata_chan chan simplejson.Json,interval int){
 
 			vins := one_trx[get_json_elem_tag_tx_vin()].([]interface{})
 
+			if is_chain_btm() {
+				trxid_blockheight_cache[trx_Id] = tmp_height
+			}
+
 			if !is_chain_btm() {
 				for _,vin_data := range vins{
 					vin := vin_data.(map[string]interface{})
@@ -871,6 +898,11 @@ func handle_block(blockdata_chan chan simplejson.Json,interval int){
 
 			vouts := one_trx[get_json_elem_tag_tx_vout()].([]interface{})
 
+			mux_id := ""
+			if is_chain_btm() {
+				mux_id = one_trx["mux_id"].(string)
+			}
+
 			if !is_chain_btm() {
 				for _, vout_data := range vouts {
 					vout := vout_data.(map[string]interface{})
@@ -919,6 +951,12 @@ func handle_block(blockdata_chan chan simplejson.Json,interval int){
 						continue
 					}
 
+					n, exist := vout["position"]
+					var n_data int64
+					if exist {
+						n_data, _ = n.(json.Number).Int64()
+					}
+
 					affect_address := ""
 					affect_address_if, exist := vout["address"]
 					if exist {
@@ -939,13 +977,17 @@ func handle_block(blockdata_chan chan simplejson.Json,interval int){
 					//插入utxo
 					utxo_prefix := cal_utxo_prefix_for_btm(utxo_id)
 					addr_utxo_prefix := cal_addr_utxo_prefix_for_btm(affect_address, utxo_id)
+
+					//把mux_id 和 position也暂存在control_program中
+					control_program = control_program + "," + mux_id + "," + strconv.Itoa(int(n_data))
+
 					add_utxo(utxo_prefix, value_data, affect_address, addr_utxo_prefix, control_program)
 				}
 			}
 			trx_counts ++
 		}
 		if last_height<tmp_height{
-		last_height = tmp_height
+			last_height = tmp_height
 		}
 		if int32(interval) == 1{
 			flush_db()
@@ -969,6 +1011,7 @@ func main(){
 	flush_count =0
 	utxo_cache = make(map[string]interface{},0)
 	addr_utxo_cache = make(map[string]interface{},0)
+	trxid_blockheight_cache = make(map[string]int,0)
 	trxId_cache	= make(	[][]byte,0,4000000)
 	utxo_spent_cache = make([]string,0,2000000)
 	addr_utxo_spent_cache = make([]string,0,2000000)
@@ -986,6 +1029,15 @@ func main(){
 		if !exist{
 			fmt.Println("not Support chain type",ChainType)
 			return
+		}
+	}
+
+	if is_chain_btm() {
+		if *paramChainType == "BTM" {
+			btm_consensus_param = &btm_consensus.MainNetParams
+		} else if *paramChainType == "BTM_TEST" {
+			//btm_consensus_param = &btm_consensus.TestNetParams
+			btm_consensus_param = &btm_consensus.SoloNetParams
 		}
 	}
 
@@ -1012,6 +1064,13 @@ func main(){
 	if err != nil { panic(err) }
 	config_db,err =leveldb.OpenFile(config.RpcServerConfig.DbPathConfig[ChainType]+"config_db",nil)
 	if err != nil { panic(err) }
+
+	if is_chain_btm() {
+		trxid_blockheight_db, err = leveldb.OpenFile(config.RpcServerConfig.DbPathConfig[ChainType]+"trxid_blockheight_db", nil)
+		if err != nil {
+			panic(err)
+		}
+	}
 
 	//init fs
 	os.Mkdir(config.RpcServerConfig.DbPathConfig[ChainType]+"meta",os.ModeDir)
@@ -1166,7 +1225,9 @@ func main(){
 	addr_unspent_utxo_db.Close()
 	config_db.Close()
 
-
+	if is_chain_btm() {
+		trxid_blockheight_db.Close()
+	}
 
 
 }

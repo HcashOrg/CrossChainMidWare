@@ -11,7 +11,7 @@ App = Flask(__name__, template_folder=os.path.join(os.path.dirname(os.path.dirna
 Jsonrpc = JSONRPC(App, '/api', enable_web_browsable_api=True)
 
 App.config.from_object(config['development'])   # 载入配置文件
-
+# App.config.from_object(config['mutalisk'])
 
 Client = MongoClient(App.config['MONGO_HOST'], App.config['MONGO_PORT'])
 

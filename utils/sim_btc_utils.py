@@ -138,7 +138,7 @@ class sim_btc_utils:
     def sim_btc_get_balance(self,addr):
         resp = self.collect_http_request("Service.GetBalance", [addr])
         if resp.has_key("result") and resp["result"] != None:
-            return str(resp["result"])
+            return "%.08f" % (resp["result"])
         else:
             return "0"
 
@@ -154,6 +154,7 @@ class sim_btc_utils:
         vouts = {}
         for addr, num in dest_info.items():
             amount = round(amount + num,8)
+
             vouts[addr]=round(num,8)
 
         txout = sorted(txout, key=lambda d: float(d["amount"]), reverse=True)

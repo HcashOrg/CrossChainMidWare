@@ -227,7 +227,7 @@ class hc_utils:
     def hc_get_balance(self, addr):
         resp = self.collect_http_request("Service.GetBalance", [addr])
         if resp.has_key("result") and resp["result"] != None:
-            return str(resp["result"])
+            return "%.08f" % (resp["result"])
         else:
             return "0"
 

@@ -52,6 +52,19 @@ class BlockInfoBtc(object):
         self.amount = 0.0
         self.fee = 0.0
 
+    def from_block_resp_btm(self, block_result):
+        self.block_id = (block_result.get("hash"))
+        self.block_num = int(block_result.get("height"))
+        self.block_size = int(block_result.get("size"))
+        self.previous = (block_result.get("previous_block_hash"))
+        self.trx_digest = (block_result.get("transaction_merkle_root"))
+        self.block_time = datetime.fromtimestamp(int(block_result.get("timestamp")))
+        self.transactions = block_result.get("transactions")
+        self.block_bonus = 5.0
+        self.trx_count = len(self.transactions)
+        self.amount = 0.0
+        self.fee = 0.0
+
     def get_json_data(self):
         return {"blockHash":self.block_id,"chainId":"btc","blockNumber":self.block_num,"blockSize":self.block_size,
                 "previous":self.previous,"trxDigest":self.trx_digest,"transactionsCount":self.trx_count,

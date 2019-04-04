@@ -9,6 +9,7 @@ from collect_ltc_block import LTCCoinTxCollecter
 from collect_ub_block import UBCoinTxCollecter
 from BKCoinTxCollector import BKCoinTxCollector
 from collect_hc_block import HCCoinTxCollecter
+from collect_btm_block import BTMCoinTxCollecter
 import logging
 import sys
 import signal
@@ -43,6 +44,8 @@ if __name__ == '__main__':
         collector = BKCoinTxCollector(db)
     elif sys.argv[1] == "hc":
         collector = HCCoinTxCollecter(db)
+    elif sys.argv[1] == "btm":
+        collector = BTMCoinTxCollecter(db)
     else:
         print "Please indicate correct type of coin tx to collect [btc|ltc]"
         exit(1)
