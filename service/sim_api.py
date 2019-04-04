@@ -312,6 +312,7 @@ def zchain_query_getBlockHeight(chainId):
     logger.info('Zchain.Query.getBlockHeight')
     if type(chainId) != unicode:
         return error_utils.mismatched_parameter_type('chainId', 'STRING')
+    chainId = chainId.lower()
     result = {}
     if 'erc' in chainId:
         result = eth_utils.eth_get_block_height()
