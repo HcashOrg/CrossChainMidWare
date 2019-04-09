@@ -1111,30 +1111,66 @@ def zchain_transaction_all_history(param):
             if type(chainIdLower) != unicode:
                 continue
             ret_temp['chainId'] = chainId
-            deposit_trxs = zchain_transaction_deposit_history(chainId, account, blockNum, limit)
-            #print deposit_trxs
-            withdraw_trxs = zchain_transaction_withdraw_history(chainId, account, blockNum, limit)
-            #print withdraw_trxs
+            current_block_info = {
+                "eth": "syncblocknum",
+                "btc": "btcsyncblocknum",
+                "ltc": "ltcsyncblocknum",
+                "hc": "hcsyncblocknum",
+                "usdt": "usdtsyncblocknum",
+            }
+            if type(chainIdLower) != unicode:
+                return error_utils.mismatched_parameter_type('chainId', 'STRING')
+            if type(account) != unicode:
+                return error_utils.mismatched_parameter_type('account', 'STRING')
+            if type(blockNum) != int:
+                return error_utils.mismatched_parameter_type('blockNum', 'INTEGER')
+            if type(limit) != int:
+                return error_utils.mismatched_parameter_type('limit', 'INTEGER')
+            current_block_num = 0
+            dep_num = 1000
+            if chainIdLower == "eth" or "erc" in chainIdLower:
+                current_block_num = int(db.b_config.find_one({"key": current_block_info["eth"]})["value"])
+                dep_num = 10000
+                if blockNum == 0:
+                    blockNum = 6500000
+            elif current_block_info.has_key(chainIdLower):
+                current_block_num = int(db.b_config.find_one({"key": current_block_info[chainIdLower]})["value"])
+            trxs = []
+            deposit_trxs = []
+            withdraw_trxs = []
+            guardcall_trxs = []
+            deposit_blocknum = 0
+            withdraw_blocknum = 0
+            guardcall_blocknum = 0
+            for i in range(((current_block_num - blockNum) / dep_num) + 1):
+                depositTrxs = db.b_deposit_transaction.find(
+					{"chainId": chainIdLower, "blockNum": {"$gt": blockNum + i * dep_num, "$lte": blockNum + (i + 1) * dep_num}},
+                    {"_id": 0}).sort(
+                    "blockNum", pymongo.DESCENDING)
+                withdrawTrxs = db.b_withdraw_transaction.find(
+					{"chainId": chainIdLower, "blockNum": {"$gt": blockNum + i * dep_num, "$lte": blockNum + (i + 1) * dep_num}},
+                    {"_id": 0}).sort(
+                    "blockNum", pymongo.DESCENDING)
+                deposit_trxs.extend(list(depositTrxs))
+                if len(deposit_trxs)>0:
+                    deposit_blocknum = deposit_trxs[0]['blockNum']
+                withdraw_trxs.extend(list(withdrawTrxs))
+                if len(withdraw_trxs)>0:
+                    withdraw_blocknum = withdraw_trxs[0]['blockNum']
+                trxs.extend(deposit_trxs)
+                trxs.extend(withdraw_trxs)
             if ('eth' == chainIdLower) or ('erc' in chainIdLower):
-                guardcall_trxs = zchain_transaction_guardcall_history(chainId,account,blockNum,limit)
-                if deposit_trxs.has_key('data'):
-                    ret_list.extend(deposit_trxs['data'])
-                if withdraw_trxs.has_key('data'):
-                    ret_list.extend(withdraw_trxs['data'])
-                if guardcall_trxs.has_key('data'):
-                    ret_list.extend(guardcall_trxs['data'])
-                deposit_blocknum = deposit_trxs.get('blockNum', 0)
-                withdraw_blocknum = withdraw_trxs.get('blockNum', 0)
-                guardcall_blocknum = guardcall_trxs.get('blockNum', 0)
-                ret_temp['blockNum'] = max(deposit_blocknum, withdraw_blocknum,guardcall_blocknum)
-            else:
-                if deposit_trxs.has_key('data'):
-                    ret_list.extend(deposit_trxs['data'])
-                if withdraw_trxs.has_key('data'):
-                    ret_list.extend(withdraw_trxs['data'])
-                deposit_blocknum = deposit_trxs.get('blockNum', 0)
-                withdraw_blocknum = withdraw_trxs.get('blockNum', 0)
-                ret_temp['blockNum'] = max(deposit_blocknum, withdraw_blocknum)
+                guardcallTrxs = db.b_guardcall_transaction.find(
+                    {"chainId": chainIdLower, "blockNum": {"$gt": blockNum + i * dep_num, "$lte": blockNum + (i + 1) * dep_num}}, {"_id": 0}).sort(
+                    "blockNum", pymongo.DESCENDING)
+                guardcall_trxs.extend(list(guardcallTrxs))
+                if len(guardcall_trxs)>0:
+                    guardcall_blocknum = guardcall_trxs[0]['blockNum']
+                trxs.extend(guardcall_trxs)
+            ret_temp['blockNum'] = max(deposit_blocknum, withdraw_blocknum, guardcall_blocknum,blockNum)
+            if len(trxs) > 0:
+                break
+            ret_list.extend(trxs)
             ret_temp['data'] = ret_list
             ret.append(ret_temp)
         except Exception, ex:
