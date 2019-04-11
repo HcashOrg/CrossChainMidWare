@@ -1159,17 +1159,17 @@ def zchain_transaction_all_history(param):
                     withdraw_blocknum = withdraw_trxs[0]['blockNum']
                 trxs.extend(deposit_trxs)
                 trxs.extend(withdraw_trxs)
-            if ('eth' == chainIdLower) or ('erc' in chainIdLower):
-                guardcallTrxs = db.b_guardcall_transaction.find(
-                    {"chainId": chainIdLower, "blockNum": {"$gt": blockNum + i * dep_num, "$lte": blockNum + (i + 1) * dep_num}}, {"_id": 0}).sort(
-                    "blockNum", pymongo.DESCENDING)
-                guardcall_trxs.extend(list(guardcallTrxs))
-                if len(guardcall_trxs)>0:
-                    guardcall_blocknum = guardcall_trxs[0]['blockNum']
-                trxs.extend(guardcall_trxs)
-            ret_temp['blockNum'] = max(deposit_blocknum, withdraw_blocknum, guardcall_blocknum,blockNum)
-            if len(trxs) > 0:
-                break
+                if ('eth' == chainIdLower) or ('erc' in chainIdLower):
+                    guardcallTrxs = db.b_guardcall_transaction.find(
+                        {"chainId": chainIdLower, "blockNum": {"$gt": blockNum + i * dep_num, "$lte": blockNum + (i + 1) * dep_num}}, {"_id": 0}).sort(
+                        "blockNum", pymongo.DESCENDING)
+                    guardcall_trxs.extend(list(guardcallTrxs))
+                    if len(guardcall_trxs)>0:
+                        guardcall_blocknum = guardcall_trxs[0]['blockNum']
+                    trxs.extend(guardcall_trxs)
+                ret_temp['blockNum'] = max(deposit_blocknum, withdraw_blocknum, guardcall_blocknum,blockNum)
+                if len(trxs) > 0:
+                    break
             ret_list.extend(trxs)
             ret_temp['data'] = ret_list
             ret.append(ret_temp)
