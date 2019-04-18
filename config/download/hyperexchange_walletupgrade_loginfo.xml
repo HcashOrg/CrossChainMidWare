@@ -1,3 +1,16 @@
+v1.2.18
+1 fix a bug of withdrawing ELF
+2 fix a bug of multi-sig account
+3 optimize performance
+4 optimize the communication with middleware
+5 fix a bug witch may destroy the DB
+6 now users can cancel the withdraw of HIOU when the trx is in pending state
+7 k-line graph is added in the exchange page
+
+All users must upgrade to this version.
+If you upgrade to this version, your wallet will replay the chain data. This will take you a few minutes.
+
+
 v1.2.16
 1 optimize the synchronization
 2 change the action when contract storage change from table to nil
@@ -7,7 +20,6 @@ in case that the network connection num is still 0 or the block height is not in
 v1.2.15
 1 fix a crash bug
 
-All users must upgrade to this version.
 
 v1.2.14
 1 network optimized
@@ -15,7 +27,6 @@ v1.2.14
 3 decentralized exchange released
 4 open special deposit channel
 
-If you upgrade to this version, your wallet will replay the chain data. This will take you a few minutes.
 
 v1.2.12
 1 add a new coin USDT
