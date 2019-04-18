@@ -4,4 +4,8 @@
 /dist
 /build
 *~
-/.idea
+*.idea
+.gitignore
+*.exe
+*.bat
+*.log
