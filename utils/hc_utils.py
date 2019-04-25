@@ -138,7 +138,7 @@ class hc_utils:
         bak_index = -1
         use_idx = []
 
-        if len(txout) > 30:
+        if len(txout) > 15:
             for i in range(len(txout)):
                 if float(txout[i].get("amount")) >= all_need_amount:
                     bak_index = i
@@ -157,7 +157,7 @@ class hc_utils:
                 sum = round(sum + float(txout[i].get("amount")), 8)
                 vin_need.append(txout[i])
                 use_idx.append(i)
-        if len(txout) > 30 and len(vin_need) < 10:
+        if len(txout) > 15 and len(vin_need) < 10:
             for i in range(10 - len(vin_need)):
                 cur_idx = len(txout) - i - 1
                 if cur_idx not in use_idx:
