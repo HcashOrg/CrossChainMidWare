@@ -74,6 +74,13 @@ func is_chain_btm() bool {
 	return false
 }
 
+func is_chain_bch() bool {
+	if len(ChainType) >= 3 && strings.ToUpper(ChainType[0:3]) == "BCH" {
+		return true
+	}
+	return false
+}
+
 func get_json_elem_tag_txs() string {
 	if is_chain_btm() {
 		return "transactions"
@@ -557,6 +564,7 @@ func flush_db(){
 }
 
 func get_utxo(utxo_prefix string) interface{}{
+
 	cache_data,exist:= utxo_cache[utxo_prefix]
 	if exist{
 		return cache_data.(pro.UTXOObject)
@@ -565,7 +573,7 @@ func get_utxo(utxo_prefix string) interface{}{
 	data,err := unspent_utxo_db.Get([]byte(utxo_prefix),nil)
 
 	if err!=nil{
-		fmt.Println("get utxo error",err.Error())
+		//fmt.Println("get utxo error",err.Error())
 		return nil
 	}
 	utxo_obj:= pro.UTXOObject{}
@@ -578,6 +586,7 @@ func get_utxo(utxo_prefix string) interface{}{
 }
 
 func spent_utxo(utxo_prefix string,addr_utxo_prefix string){
+
 	_,exist :=utxo_cache[utxo_prefix]
 	if exist{
 		delete(utxo_cache, utxo_prefix)
@@ -781,7 +790,8 @@ func handle_block(blockdata_chan chan simplejson.Json,interval int){
 		tx_datas,_ := blockchain_data.Get("result").Get(get_json_elem_tag_txs()).Array()
 		//处理数据
 		tmp_height,_ := blockchain_data.Get("result").Get("height").Int()
-
+		bak_handle_vins :=make( map[string]interface{})
+		bak_trx_count := make( map[string]int32)
 		for _,trx_data := range tx_datas{
 
 			one_trx := trx_data.(map[string]interface{})
@@ -800,6 +810,7 @@ func handle_block(blockdata_chan chan simplejson.Json,interval int){
 			}
 
 			if !is_chain_btm() {
+
 				for _,vin_data := range vins{
 					vin := vin_data.(map[string]interface{})
 					_,exist := vin["coinbase"]
@@ -815,14 +826,23 @@ func handle_block(blockdata_chan chan simplejson.Json,interval int){
 
 					if txid_exist && vout_exist{
 						for ;;{
+
 							//获取utxo记录
 							utxo_prefix := cal_utxo_prefix(vin_txid.(string),int(vout_data))
 
 							data := get_utxo(utxo_prefix)
 							if data==nil{
-								fmt.Println("UTXO not exist",utxo_prefix,trx_data)
-								is_done = true
-								return
+								if is_chain_bch(){
+									bak_trx_count[utxo_prefix] = trx_counts
+									bak_handle_vins[utxo_prefix] = vin_data
+									//fmt.Println("bch sorted utxo")
+									break
+								}else{
+									fmt.Println("UTXO not exist",utxo_prefix,trx_data)
+									is_done = true
+									return
+								}
+
 
 							}
 							//增加关系表内容
@@ -986,6 +1006,45 @@ func handle_block(blockdata_chan chan simplejson.Json,interval int){
 			}
 			trx_counts ++
 		}
+		if len(bak_handle_vins)>0{
+			for bak_utxo_prefix,vin_data := range bak_handle_vins{
+				vin := vin_data.(map[string]interface{})
+				_,exist := vin["coinbase"]
+				if exist{
+					continue
+				}
+				vin_txid,txid_exist := vin["txid"]
+				if vin_txid.(string) =="0000000000000000000000000000000000000000000000000000000000000000"{
+					continue
+				}
+				vout,vout_exist := vin["vout"]
+				vout_data,_ := vout.(json.Number).Int64()
+
+				if txid_exist && vout_exist{
+
+					//获取utxo记录
+					utxo_prefix := cal_utxo_prefix(vin_txid.(string),int(vout_data))
+
+					data := get_utxo(utxo_prefix)
+					if data==nil{
+							fmt.Println("UTXO not exist",utxo_prefix,vin_data)
+							is_done = true
+							return
+					}
+					//增加关系表内容
+					addr_utxo_prefix := cal_addr_utxo_prefix(*data.(pro.UTXOObject).Address,vin_txid.(string),int(vout_data))
+					add_addr_trx_releation(bak_trx_count[bak_utxo_prefix],*data.(pro.UTXOObject).Address)
+
+					//address_trx_db.Insert(tmp_map).Exec(session)
+					//one_vin_map["value"] = data["value"]
+					//one_vin_map["address"] = data["address"]
+					//删除utxo记录
+					spent_utxo(utxo_prefix,addr_utxo_prefix)
+				}
+			}
+
+		}
+
 		if last_height<tmp_height{
 			last_height = tmp_height
 		}

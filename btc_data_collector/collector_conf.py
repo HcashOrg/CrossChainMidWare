@@ -74,7 +74,14 @@ class BTMCollectorConfig(CollectorConfig):
     SAFE_BLOCK_FIELD = "btmsafeblock"
 
 
-
+class BCHCollectorConfig(CollectorConfig):
+    ASSET_SYMBOL = "BCH"
+    RPC_HOST = 'bch_wallet'
+    RPC_PORT = 60018
+    SYNC_STATE_FIELD = "bchsyncstate"
+    SYNC_BLOCK_NUM = "bchsyncblocknum"
+    SAFE_BLOCK_FIELD = "bchsafeblock"
+    MULTISIG_VERSION = 196
 
 
 

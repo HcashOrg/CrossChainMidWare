@@ -67,6 +67,13 @@ class DevelopmentConfig(Config):
     USDT_FEE = 0.001
     USDT_PER_FEE = 0.00005
     USDT_PROPERTYID = 31
+
+    BCH_PORT = 60018
+    BCH_COLLECT_HOST = 'localhost'
+    BCH_COLLECT_PORT = 5453
+    BCH_FEE = 0.001
+    BCH_PER_FEE = 0.0001
+    BCH_HOST="bch_wallet"
     # QUERY_SERVICE_HOST = "192.168.1.142"
     # QUERY_SERVICE_PORT = 5444
 

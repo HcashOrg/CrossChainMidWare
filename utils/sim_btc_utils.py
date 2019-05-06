@@ -142,6 +142,15 @@ class sim_btc_utils:
         else:
             return "0"
 
+    def floatToInt(self,f):
+        i = 0
+        if f > 0:
+            i = (f * 10 + 5) / 10
+        elif f < 0:
+            i = (f * 10 - 5) / 10
+        else:
+            i = 0
+        return int(i)
 
     def sim_btc_create_transaction(self, from_addr, dest_info):
         txout = self.sim_btc_get_trx_out(from_addr)
@@ -193,11 +202,14 @@ class sim_btc_utils:
             return ""
         vins = []
         script = []
+        vins_map = {}
         for need in vin_need :
             pubkey=need.get('scriptPubKey')
             script.append(pubkey)
             vin = {'txid': need.get('txid'), 'vout': int(need.get('vout')), 'scriptPubKey': pubkey}
             vins.append(vin)
+            if self.name.upper() == "BCH":
+                vins_map[need.get('txid')+str(need.get('vout'))] = need.get("amount")
         #set a fee
         resp = ""
         trx_size = len(vin_need) * self.config["vin_size"] + (len(vouts)+1) * self.config["vout_size"]
@@ -218,6 +230,12 @@ class sim_btc_utils:
         if resp["result"] != None:
             trx_hex = resp['result']
             trx = self.sim_btc_decode_hex_transaction(trx_hex)
+            if self.name.upper() == "BCH":
+                index=0
+                for one_vin in trx["vin"]:
+                    tmp_amount = vins_map[one_vin["txid"]+str(one_vin["vout"])]
+                    trx["vin"][index]["amount"] = self.floatToInt(round(float(tmp_amount),8)*100000000)
+                    index +=1
             return {"trx":trx,"hex":trx_hex,"scriptPubKey":script}
         return ""
 
