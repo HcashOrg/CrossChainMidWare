@@ -94,7 +94,7 @@ var RpcServerConfig = ServerConfig{RpcListenEndPoint:map[string]string{
 		"HC_TEST":"39021",
 		"BTM":"9888",
 		"BTM_TEST":"9888",
-		"BCH":"60013",
+		"BCH":"60018",
 		"BCH_TEST":"17778"},
 	SourceDataUserName:map[string]string{
 		"BTC":"a",
