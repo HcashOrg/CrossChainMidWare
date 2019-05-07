@@ -1117,6 +1117,7 @@ def zchain_transaction_all_history(param):
                 "ltc": "ltcsyncblocknum",
                 "hc": "hcsyncblocknum",
                 "usdt": "usdtsyncblocknum",
+                "bch":"bchsyncblocknum"
             }
             if type(chainIdLower) != unicode:
                 return error_utils.mismatched_parameter_type('chainId', 'STRING')
