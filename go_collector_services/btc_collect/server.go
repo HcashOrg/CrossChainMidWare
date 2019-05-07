@@ -21,7 +21,8 @@ import (
 	btm_vmutil "github.com/bytom/protocol/vm/vmutil"
 	btm_crypto "github.com/bytom/crypto"
 	btm_common "github.com/bytom/common"
-	btm_api "github.com/bytom/api"
+
+	//btm_api "github.com/bytom/api"
 	btm_txbuilder "github.com/bytom/blockchain/txbuilder"
 	btm_types "github.com/bytom/protocol/bc/types"
 	"strings"
@@ -139,7 +140,7 @@ func (s *Service) BuildTransaction(r *http.Request, args *[]interface{}, reply* 
 		txbuilderTpl.Transaction = tpl.Transaction
 		txbuilderTpl.AllowAdditional = tpl.AllowAdditional
 		txbuilderTpl.SigningInstructions = tpl.SigningInstructions
-		estTxGas, err := btm_api.EstimateTxGas(txbuilderTpl)
+		estTxGas, err := btm_txbuilder.EstimateTxGas(txbuilderTpl)
 		if err != nil {
 			return errors.New("EstimateTxGas fail: %s" + err.Error())
 		}
