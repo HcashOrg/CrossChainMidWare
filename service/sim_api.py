@@ -397,7 +397,11 @@ def zchain_trans_createTrx(chainId, from_addr,dest_info):
     chainId = chainId.lower()
     result = {}
     if sim_btc_plugin.has_key(chainId):
-        result = sim_btc_plugin[chainId].sim_btc_create_transaction(from_addr,dest_info)
+        is_fast_record = db.get_collection("b_config").find_one({"key": "is_fast"})
+        is_fast = False
+        if is_fast_record is not None:
+            is_fast = bool(is_fast_record["value"])
+        result = sim_btc_plugin[chainId].sim_btc_create_transaction(from_addr,dest_info,is_fast)
     elif chainId == "hc":
         result = hc_plugin.hc_create_transaction(from_addr, dest_info)
     elif chainId == "usdt":
