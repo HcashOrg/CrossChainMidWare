@@ -213,12 +213,8 @@ class sim_btc_utils:
         #set a fee
         resp = ""
         trx_size = len(vin_need) * self.config["vin_size"] + (len(vouts)+1) * self.config["vout_size"]
-        if is_fast and len(vin_need) == 1:
-            cal_fee = math.ceil(trx_size / 1000.0*5) * self.config["per_fee"]
-        elif is_fast and len(vin_need) ==2:
-            cal_fee = math.ceil(trx_size / 1000.0* 5/2) * self.config["per_fee"]
-        elif is_fast and len(vin_need) ==3:
-            cal_fee = math.ceil(trx_size / 1000.0* 5/3) * self.config["per_fee"]
+        if is_fast:
+            cal_fee = math.ceil(fee)
         else:
             cal_fee = math.ceil(trx_size/1000.0) * self.config["per_fee"]
         cal_fee = round(cal_fee,8)
