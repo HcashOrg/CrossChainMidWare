@@ -214,7 +214,7 @@ class sim_btc_utils:
         resp = ""
         trx_size = len(vin_need) * self.config["vin_size"] + (len(vouts)+1) * self.config["vout_size"]
         if is_fast:
-            cal_fee = math.ceil(fee)
+            cal_fee = fee
         else:
             cal_fee = math.ceil(trx_size/1000.0) * self.config["per_fee"]
         cal_fee = round(cal_fee,8)
