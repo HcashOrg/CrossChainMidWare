@@ -206,7 +206,7 @@ class sim_btc_utils:
         for need in vin_need :
             pubkey=need.get('scriptPubKey')
             script.append(pubkey)
-            vin = {'txid': need.get('txid'), 'vout': int(need.get('vout')), 'scriptPubKey': pubkey}
+            vin = {'txid': need.get('txid'), 'vout': int(need.get('vout')), 'scriptPubKey': pubkey,"sequence":0xfffffff0}
             vins.append(vin)
             if self.name.upper() == "BCH":
                 vins_map[need.get('txid')+str(need.get('vout'))] = need.get("amount")
