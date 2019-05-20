@@ -168,5 +168,17 @@ if (db.auth("dbAdmin", "admin12#$%") != 1) {
         'key': 'btmsyncstate',
         'value': '0'
     });
+    db.b_config.insert({
+        'key': 'bchsafeblock',
+        'value': '6'
+    });
+    db.b_config.insert({
+        'key': 'bchsyncblocknum',
+        'value': '583356'
+    });
+    db.b_config.insert({
+        'key': 'bchsyncstate',
+        'value': '0'
+    });
 }
 
