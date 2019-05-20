@@ -84,7 +84,7 @@ class DevelopmentConfig(Config):
     # BTM_COLLECT_HOST = 'localhost'
     BTM_COLLECT_HOST = "192.168.1.107"
     BTM_COLLECT_PORT = 5451
-    SUPPORT_MIDWARE_PLUGIN_SYMBOL=["HC","ETH","BTC","LTC","ERCPAX","ERCELF","USDT","BTM"]
+    SUPPORT_MIDWARE_PLUGIN_SYMBOL=["HC","ETH","BTC","LTC","ERCPAX","ERCELF","USDT","BTM","BCH"]
     WHITE_LIST_SENATOR_ID = ["1.2.290","1.2.1294","1.2.1165","1.2.1124","1.2.1561","1.2.1237"]
     WHITE_LIST_FILE_PATH = "/hx/crosschain_midware/config/white_list_ids.json"
 
