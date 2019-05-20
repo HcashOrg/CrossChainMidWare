@@ -70,7 +70,7 @@ class DevelopmentConfig(Config):
 
     BCH_PORT = 60018
     BCH_COLLECT_HOST = 'localhost'
-    BCH_COLLECT_PORT = 5453
+    BCH_COLLECT_PORT = 5452
     BCH_FEE = 0.001
     BCH_PER_FEE = 0.0001
     BCH_HOST="bch_wallet"
