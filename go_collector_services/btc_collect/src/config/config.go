@@ -142,7 +142,7 @@ var RpcServerConfig = ServerConfig{RpcListenEndPoint:map[string]string{
 		"BCH":"",
 		"BCH_TEST":""},
 	SafeBlock:map[string]int{
-		"BTC":2,
+		"BTC":4,
 		"BTC_TEST":2,
 		"LTC":6,
 		"LTC_TEST":2,
@@ -150,7 +150,7 @@ var RpcServerConfig = ServerConfig{RpcListenEndPoint:map[string]string{
 		"HC_TEST":6,
 		"BTM":2,
 		"BTM_TEST":1,
-		"BCH":2,
+		"BCH":4,
 		"BCH_TEST":2},
 	MULTISIGVERSION:map[string]int{
 		"BTC":5,
