@@ -170,7 +170,7 @@ if (db.auth("dbAdmin", "admin12#$%") != 1) {
     });
     db.b_config.insert({
         'key': 'bchsafeblock',
-        'value': '6'
+        'value': '4'
     });
     db.b_config.insert({
         'key': 'bchsyncblocknum',
