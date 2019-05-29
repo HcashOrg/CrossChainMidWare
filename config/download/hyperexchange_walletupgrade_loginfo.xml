@@ -1,8 +1,17 @@
+v1.2.20
+1 add new coin BCH
+2 optimize the memory usage
+3 the K-line widget is displayed on a side-by-side interface.
+4 show the block height of network at the bottom
+
+All users must upgrade to this version.
+If you upgrade to this version, your wallet will replay the chain data. This will take you a few minutes.
+
+
 v1.2.19
 1 fix a bug of creating multi-sig addresses
 2 fix a display bug when senators update keys
 
-All users must upgrade to this version.
 
 v1.2.18
 1 fix a bug of withdrawing ELF
@@ -12,8 +21,6 @@ v1.2.18
 5 fix a bug witch may destroy the DB
 6 now users can cancel the withdraw of HIOU when the trx is in pending state
 7 k-line graph is added in the exchange page
-
-If you upgrade to this version, your wallet will replay the chain data. This will take you a few minutes.
 
 
 v1.2.16
