@@ -801,8 +801,8 @@ func handle_block(blockdata_chan chan simplejson.Json,interval int){
 
 			tx_byte := make([]byte,32)
 			hex.Decode(tx_byte,[]byte(trx_Id))
-			trxId_cache = append(trxId_cache,tx_byte)
-			atomic.AddInt32(&change_weight,int32(32))
+			//trxId_cache = append(trxId_cache,tx_byte)
+			//atomic.AddInt32(&change_weight,int32(32))
 
 			vins := one_trx[get_json_elem_tag_tx_vin()].([]interface{})
 
