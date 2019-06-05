@@ -174,7 +174,7 @@ if (db.auth("dbAdmin", "admin12#$%") != 1) {
     });
     db.b_config.insert({
         'key': 'bchsyncblocknum',
-        'value': '583356'
+        'value': '585400'
     });
     db.b_config.insert({
         'key': 'bchsyncstate',

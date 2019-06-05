@@ -735,6 +735,7 @@ func get_vout_address(script map[string]interface{}) (string,string){
 	}
 }
 func add_addr_trx_releation(trx_num int32,address string){
+	return
 	if address == ""{
 		return
 	}
@@ -1027,10 +1028,35 @@ func handle_block(blockdata_chan chan simplejson.Json,interval int){
 
 					data := get_utxo(utxo_prefix)
 					if data==nil{
+						link_client := util.LinkClient{
+							IP:config.RpcServerConfig.SourceDataHost[ChainType],
+							Port:config.RpcServerConfig.SourceDataPort[ChainType],
+							User:config.RpcServerConfig.SourceDataUserName[ChainType],
+							PassWord:config.RpcServerConfig.SourceDataPassword[ChainType],
+						}
+						param := make([]interface{}, 0)
+						param = append(param, vin_txid)
+						param = append(param, 1)
+						raw_tran_data := link_client.SafeLinkHttpFunc("getrawtransaction", &param, config.RpcServerConfig.IsTls[ChainType]).Get("result")
+						vouts,_ := raw_tran_data.Get("vout").Array()
+						vout_datas := vouts[int(vout_data)].(map[string]interface{})
+						script := vout_datas["scriptPubKey"].(map[string]interface{})
+						value, exist := vout_datas["value"]
+						var value_data float64
+						if exist {
+							value_data, _ = value.(json.Number).Float64()
+						}
+						//cal vout address
+						affect_address, script_pubkey := get_vout_address(script)
+
+						addr_utxo_prefix := cal_addr_utxo_prefix(affect_address, vin_txid.(string), int(vout_data))
+						add_utxo(utxo_prefix, value_data, affect_address, addr_utxo_prefix, script_pubkey)
 							fmt.Println("UTXO not exist",utxo_prefix,vin_data)
-							is_done = true
-							return
+							//is_done = true
+							//return
+						data = get_utxo(utxo_prefix)
 					}
+
 					//增加关系表内容
 					addr_utxo_prefix := cal_addr_utxo_prefix(*data.(pro.UTXOObject).Address,vin_txid.(string),int(vout_data))
 					add_addr_trx_releation(bak_trx_count[bak_utxo_prefix],*data.(pro.UTXOObject).Address)
