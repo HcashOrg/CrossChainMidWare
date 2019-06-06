@@ -1231,8 +1231,8 @@ func main(){
 
 	fmt.Println("chain height",count)
 	global_start_height  = height
-	blockdata_chan := make(chan simplejson.Json,20)
-	height_chan := make(chan int,20)
+	blockdata_chan := make(chan simplejson.Json,40)
+	height_chan := make(chan int,40)
 	go collect_block(height_chan,blockdata_chan,true)
 	//go collect_block(height_chan,blockdata_chan)
 	//go collect_block(height_chan,blockdata_chan)
