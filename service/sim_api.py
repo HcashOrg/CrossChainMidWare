@@ -1147,6 +1147,18 @@ def zchain_transaction_all_history(param):
             deposit_blocknum = 0
             withdraw_blocknum = 0
             guardcall_blocknum = 0
+            withdraw_count = db.b_withdraw_transaction.find_one({"chainId": chainIdLower,"blockNum":{"$gt":blockNum}})
+            deposit_count =  db.b_deposit_transaction.find_one({"chainId": chainIdLower,"blockNum":{"$gt":blockNum}})
+            guardcall_count = None
+            if ('eth' == chainIdLower) or ('erc' in chainIdLower):
+                guardcall_count = db.b_guardcall_transaction.find_one(
+                    {"chainId": chainIdLower,
+                     "blockNum": {"$gt": blockNum}})
+            if deposit_count ==None and withdraw_count ==None and guardcall_count==None:
+                ret_temp['blockNum'] = max(deposit_blocknum, withdraw_blocknum, guardcall_blocknum, blockNum)
+                ret_temp['data'] = ret_list
+                ret.append(ret_temp)
+                continue
             for i in range(((current_block_num - blockNum) / dep_num) + 1):
                 depositTrxs = db.b_deposit_transaction.find(
 					{"chainId": chainIdLower, "blockNum": {"$gt": blockNum + i * dep_num, "$lte": blockNum + (i + 1) * dep_num}},

@@ -65,8 +65,12 @@ if (db.auth("dbAdmin", "admin12#$%") != 1) {
     db.b_deposit_transaction.ensureIndex({'chainId': 1});
     db.b_deposit_transaction.ensureIndex({'txid':1})
     db.b_deposit_transaction.ensureIndex({'fromAddress': 1});
+    db.b_deposit_transaction.ensureIndex({"chainId": 1,'blockNum':-1});
+    db.b_withdraw_transaction.ensureIndex({"chainId": 1,'blockNum':-1});
+    db.b_guardcall_transaction.ensureIndex({"chainId": 1,'blockNum':-1});
     db.b_withdraw_transaction.ensureIndex({'chainId': 1});
     db.b_withdraw_transaction.ensureIndex({'toAddress': 1});
+
     db.b_config.ensureIndex({'key': 1}, {'unique': true});
     db.b_verify_cache.ensureIndex({'chainId':1,"addr":2,"message":3,"signature":4});
     db.b_query_trans_cache.ensureIndex({'chainId':1,'trxid':2})
