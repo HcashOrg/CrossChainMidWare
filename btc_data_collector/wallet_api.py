@@ -3,6 +3,7 @@ import requests
 import json
 from base64 import encodestring
 import logging
+import time
 
 logging.getLogger("requests").setLevel(logging.WARNING)
 
@@ -53,3 +54,4 @@ class WalletApi:
                 print response.text
             except Exception,ex:
                 print ex
+                time.sleep(1)
