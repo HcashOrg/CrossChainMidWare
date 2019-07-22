@@ -336,9 +336,22 @@ class BTCCoinTxCollector(CoinTxCollector):
             if not ret1.has_key('result'):
                 logging.error("Fail to get vin transaction [%s:%d] of [%s]" % (trx_in["txid"], trx_in['vout'], trx_data["trxid"]))
                 exit(0)
-            addr =  self._get_vout_address(ret1.get("result").get("vout")[int(trx_in['vout'])])
+            if ret1.get("result").has_key("vout"):
+                addr =  self._get_vout_address(ret1.get("result").get("vout")[int(trx_in['vout'])])
+            else:
+                while True:
+                    if self.config.ASSET_SYMBOL == "HC":
+                        ret1 = self.wallet_api.http_request("getrawtransaction", [trx_in['txid'], 2])
+                    else:
+                        ret1 = self.wallet_api.http_request("getrawtransaction", [trx_in['txid'], True])
+                    if ret1.get("result").has_key("vout"):
+                        addr = self._get_vout_address(ret1.get("result").get("vout")[int(trx_in['vout'])])
+                        break
+                    logging.error("get vout address failed",ret1)
+                    time.sleep(1)
             if addr == "" :
                 continue
+
             for t in ret1['result']['vout']:
                 if t['n'] == trx_in['vout']:
                     in_trx = {'address': self._get_vout_address(t), 'value': t['value']}
