@@ -16,7 +16,11 @@ ercelf_info = {
     "chainId" : "ERCELF",
     "address" : "0xbf2179859fc6d5bee9bf9158632dc51678a4100e"
 }
-
+erctitan_info = {
+    "precison": "8",
+    "chainId": "ERCTITAN",
+    "address": "0x3d66dede9f777a79f372d0cd8ae534a16b673d41"
+}
 erc_map = {}
 erc_chainId_map = {}
 erc_map[ercda_info['address']] = ercda_info
@@ -25,3 +29,5 @@ erc_map[ercpax_info['address']] = ercpax_info
 erc_chainId_map[ercpax_info['chainId']] = ercpax_info
 erc_map[ercelf_info['address']] = ercelf_info
 erc_chainId_map[ercelf_info['chainId']] = ercelf_info
+erc_map[erctitan_info['address']] = erctitan_info
+erc_chainId_map[erctitan_info['chainId']] = erctitan_info
