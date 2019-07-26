@@ -1,5 +1,17 @@
+v1.2.24
+1 modify delegate call of contract
+2 multi-sig address can also be registered
+3 now contract can vote for citizens to mine
+4 add a synchronization page
+5 modified the implementation of secure random numbers in contract
+
+All users must upgrade to this version.
+If you upgrade to this version, your wallet will replay the chain data. This will take you a few minutes.
+
+
 v1.2.23
 1 now citizens can view and vote for resolutions 
+
 
 v1.2.22
 1 fix a bug of contract testing
@@ -12,16 +24,12 @@ v1.2.21
 3 legacy address of BCH is now compatible
 4 modify the display of exchange bill depth
 
-All users must upgrade to this version.
-
 
 v1.2.20
 1 add new coin BCH
 2 optimize the memory usage
 3 the K-line widget is displayed on a side-by-side interface.
 4 show the block height of network at the bottom
-
-If you upgrade to this version, your wallet will replay the chain data. This will take you a few minutes.
 
 
 v1.2.19
