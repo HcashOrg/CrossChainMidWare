@@ -41,6 +41,15 @@ var handle_threads = runtime.NumCPU()+1
 var ChainType = "ETH"
 var WatchAddressList map[string]string
 
+func get_int(int_str string)(int64){
+	if strings.HasPrefix(int_str,"0x"){
+		value,_ := strconv.ParseInt(int_str[2:],16,32)
+		return value
+	}else{
+		value,_ := strconv.ParseInt(int_str,10,32)
+		return value
+	}
+}
 
 func collect_block(height_chan chan int,blockdata_chan chan simplejson.Json){
 	defer wg.Done()
@@ -76,7 +85,7 @@ func collect_block(height_chan chan int,blockdata_chan chan simplejson.Json){
 		blockdata_chan <- *blockdata
 		res_size,_ := blockdata.Get("result").Get("size").String()
 
-		size,_ := strconv.ParseInt(res_size[2:],16,32)
+		size := get_int(res_size)
 		atomic.AddInt64(&total_size,int64(size))
 		tx_array,_ := blockdata.Get("result").Get("transactions").Array()
 		atomic.AddInt64(&total_trx_size,int64(len(tx_array)))
