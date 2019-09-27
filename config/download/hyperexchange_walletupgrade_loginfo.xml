@@ -1,3 +1,11 @@
+v1.3.1
+1 fix a crash bug when citizen wallet existing
+2 reduce disk consumption of node process
+3 fix a display bug of my accounts
+
+If you upgrade to this version, your wallet will replay the chain data. This will take you a few minutes.
+
+
 v1.3.0
 1 reduce the memory consumed by contracts
 2 reduce the time consumed when replaying blockchain
@@ -8,7 +16,6 @@ v1.3.0
 7 now you can use light-mode wallet(beta)
 
 All users must upgrade to this version.
-If you upgrade to this version, your wallet will replay the chain data. This will take you a few minutes.
 
 
 v1.2.24
