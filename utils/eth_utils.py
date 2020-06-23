@@ -207,7 +207,8 @@ def eth_call(call_data,blockheight):
     ret = eth_request("Service.EthCall",[[call_data,blockheight]])
 
     json_data = json.loads(ret)
-    return json_data
+
+    return json_data.get("result")
         # return str(float(int(json_data.get("result"), 16)) / pow(10, int(real_precision)))
 
 
