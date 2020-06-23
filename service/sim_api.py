@@ -1212,3 +1212,25 @@ def zchain_transaction_all_history(chainId,coinName,desc,contractAddr,contact,pa
         #add record to mongodb
         db.get_collection("b_addcoin").insert_one({"chainId":chainId,"coinName":coinName,"desc":desc,"contractAddr":contractAddr,"contact":contact,"payCode":payCode})
     return True
+
+@jsonrpc.method('Zchain.EthCall(chainId=str,callData=dict,blockheight=str)')
+def zchain_EthCall(chainId,callData,blockheight):
+    logger.info('Zchain.EthCall')
+    chainId = chainId.lower()
+    if type(chainId) != unicode:
+        return error_utils.mismatched_parameter_type('chainId', 'STRING')
+    ercchainId = chainId
+    if chainId == 'eth':
+      ret = eth_utils.eth_call(callData,blockheight)
+      return ret
+    elif 'erc' in chainId:
+        #print ercchainId
+        asser = None
+        if erc_chainId_map.has_key(ercchainId):
+           asset = erc_chainId_map[ercchainId]
+        if asset == None:
+            return error_utils.invalid_chainid_type(chainId)
+
+        ret = eth_utils.eth_call(callData, blockheight)
+        return ret
+    return error_utils.invalid_chainid_type()
