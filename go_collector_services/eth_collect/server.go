@@ -298,6 +298,30 @@ func (s *Service) GetTransactionCount(r *http.Request, args *[]string, reply *st
 }
 
 
+func (s *Service) EthCall(r *http.Request, args *[]interface{}, reply *simplejson.Json) error {
+	coinType := ChainType
+	reques_data := (*args)[0].(map[string]interface{})
+	state :=(*args)[1]
+
+	link_client := util.LinkClient{
+		IP:config.RpcServerConfig.SourceDataHost[coinType],
+		Port:config.RpcServerConfig.SourceDataPort[coinType],
+		User:"",
+		PassWord:"",
+	}
+
+	eth_call_obj := map[string]string{"to":reques_data["to"].(string),"data":reques_data["data"].(string)}
+	param := make([]interface{},0,2)
+	param = append(param,eth_call_obj)
+	param = append(param,state)
+	blockdata := link_client.LinkHttpFunc("eth_call",&param )
+	res_str := blockdata.Get("result")
+
+	*reply = *res_str
+
+	return nil
+}
+
 
 //cointype contractaddress address
 // balanceof  70a08231

@@ -199,6 +199,19 @@ def eth_get_address_balance(address,chainId):
     else:
         return TurnAmountFromEth(str(int(json_data.get("result"), 16)),real_precision)
         #return str(float(int(json_data.get("result"), 16)) / pow(10, int(real_precision)))
+
+
+def eth_call(call_data,blockheight):
+
+
+    ret = eth_request("Service.EthCall",[[call_data,blockheight]])
+
+    json_data = json.loads(ret)
+
+    return json_data.get("result")
+        # return str(float(int(json_data.get("result"), 16)) / pow(10, int(real_precision)))
+
+
 def eth_get_trx_count(address,indexFormat):
     ret = eth_request("Service.GetTransactionCount",[[address,indexFormat]])
     json_data = json.loads(ret)

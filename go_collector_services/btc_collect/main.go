@@ -656,6 +656,9 @@ func cal_addr_utxo_prefix(address string,txid string, vout int)string{
 	if address == ""{
 		return ChainType+"O"+txid+ "I" +strconv.Itoa(vout)
 	}
+	if len(address)<20{
+		return ChainType+address+"O"+txid+ "I" +strconv.Itoa(vout)
+	}
 	return ChainType+address[:20]+"O"+txid+ "I" +strconv.Itoa(vout)
 }
 
