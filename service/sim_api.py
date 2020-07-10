@@ -1069,7 +1069,7 @@ def zchain_address_get_balance(chainId, addr):
         balance = eth_utils.eth_get_address_balance(addr, chainId)
     elif 'erc' in chainId:
        #print ercchainId
-       asser = None
+       asset = None
        if erc_chainId_map.has_key(ercchainId):
            asset = erc_chainId_map[ercchainId]
        if asset == None:
@@ -1230,7 +1230,7 @@ def zchain_EthCall(chainId,callData,blockheight):
       return ret
     elif 'erc' in chainId:
         #print ercchainId
-        asser = None
+        asset = None
         if erc_chainId_map.has_key(ercchainId):
            asset = erc_chainId_map[ercchainId]
         if asset == None:
