@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Info>
-    <Version>1.3.1</Version>
-    <update>1.3.1</update>
+    <Version>1.3.2</Version>
+    <update>1.3.2</update>
 	<ForceUpdate>false</ForceUpdate>
 	<MinimalVersion>1.3.0</MinimalVersion>
     <UpdateServer>http://47.52.205.184:8787/download/win_light</UpdateServer>
     <MainFiles>
 		<File>
             <Name>hyperexchange.zip</Name>
-            <LatestVer>1.3.1</LatestVer>
+            <LatestVer>1.3.2</LatestVer>
         </File>		
     </MainFiles>
     <UpdateFiles>
