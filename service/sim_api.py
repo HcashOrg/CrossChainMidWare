@@ -388,6 +388,11 @@ def zchain_query_getUtxoCount(chainId,address):
     return len(result)
 
 
+@jsonrpc.method('Zchain.Query.GetSeedNode()')
+def zhcain_query_getseednode():
+    logger.info('Zchain.Query.GetSeedNode')
+    ret = ["106.13.38.27:9034","117.78.44.37:9034","47.74.2.123:9034","47.74.23.176:9034","47.74.37.107:9034","52.194.253.245:9034","36.152.8.188:9034","172.81.250.51:9034"]
+    return ret
 
 @jsonrpc.method('Zchain.Trans.createTrx(chainId=str, from_addr=str,dest_info=dict)')
 def zchain_trans_createTrx(chainId, from_addr,dest_info):
@@ -1064,7 +1069,7 @@ def zchain_address_get_balance(chainId, addr):
         balance = eth_utils.eth_get_address_balance(addr, chainId)
     elif 'erc' in chainId:
        #print ercchainId
-       asser = None
+       asset = None
        if erc_chainId_map.has_key(ercchainId):
            asset = erc_chainId_map[ercchainId]
        if asset == None:
@@ -1225,7 +1230,7 @@ def zchain_EthCall(chainId,callData,blockheight):
       return ret
     elif 'erc' in chainId:
         #print ercchainId
-        asser = None
+        asset = None
         if erc_chainId_map.has_key(ercchainId):
            asset = erc_chainId_map[ercchainId]
         if asset == None:

@@ -20,7 +20,11 @@ erctitan_info = {
     "chainId": "ERCTITAN",
     "address": "0x3d66dede9f777a79f372d0cd8ae534a16b673d41"
 }
-
+ercusdt_info = {
+    "precison" :"6",
+    "chainId": "ERCUSDT",
+    "address": "0xdac17f958d2ee523a2206206994597c13d831ec7"
+}
 
 erc_map = {}
 erc_chainId_map = {}
@@ -32,3 +36,5 @@ erc_map[ercelf_info['address']] = ercelf_info
 erc_chainId_map[ercelf_info['chainId']] = ercelf_info
 erc_map[erctitan_info['address']] = erctitan_info
 erc_chainId_map[erctitan_info['chainId']] = erctitan_info
+erc_map[ercusdt_info['address']] = ercusdt_info
+erc_chainId_map[ercusdt_info['chainId']] = ercusdt_info
