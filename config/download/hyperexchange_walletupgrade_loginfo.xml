@@ -1,3 +1,6 @@
+v1.3.3
+1 Fix bugs that require replay data every startup
+
 v1.3.2
 1 Fix a push block bug which data might be lost
 2 Add the function of actively pushing heartbeat packets
