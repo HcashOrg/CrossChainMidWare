@@ -68,7 +68,7 @@ func SetConfigHeight(db *sql.DB,new_height int){
 	}
 }
 
-func InsertManyTrxData(db *sql.DB,datas []interface{}){
+func InsertManyTrxData(db *sql.DB,datas *[]interface{}){
 	insert,err := db.Prepare(`INSERT INTO public.trx_data(trxid,"from","to",blocknumber) VALUES ($1,$2,$3,$4)`)
 	if err != nil {
 		fmt.Println(err)
@@ -76,7 +76,7 @@ func InsertManyTrxData(db *sql.DB,datas []interface{}){
 	}
 	begin,err:=db.Begin()
 
-	for _,data := range datas{
+	for _,data := range *datas{
 		one_data := data.(map[string]interface{})
 		_,err = begin.Stmt(insert).Exec(one_data["id"],one_data["from"],one_data["to"],one_data["blockNumber"])
 		if err != nil {
@@ -109,7 +109,7 @@ func InsertOneErc20TrxData(db sql.DB,data map[string]interface{}){
 	}
 }
 
-func InsertManyErc20TrxData(db *sql.DB,datas []interface{}){
+func InsertManyErc20TrxData(db *sql.DB,datas *[]interface{}){
 	insert,err := db.Prepare(`INSERT INTO public.erc20_address_relation(txid,"from","to",blocknumber,contractAddress,"value","logIndex") VALUES ($1,$2,$3,$4,$5,$6,$7)`)
 	if err != nil {
 		fmt.Println(err)
@@ -117,7 +117,7 @@ func InsertManyErc20TrxData(db *sql.DB,datas []interface{}){
 	}
 	begin,err:=db.Begin()
 
-	for _,data := range datas{
+	for _,data := range *datas{
 		one_data := data.(map[string]interface{})
 		_,err = begin.Stmt(insert).Exec(one_data["txid"],one_data["from"],one_data["to"],one_data["blockNumber"],one_data["contractAddress"],one_data["value"],one_data["logIndex"])
 		if err != nil {
