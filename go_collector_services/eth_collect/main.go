@@ -304,7 +304,7 @@ func main(){
 
 
 
-	//检测推出信�?
+	//检测退出信号
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, os.Interrupt, os.Kill,  syscall.SIGINT, syscall.SIGTERM)
 	is_done:=false
@@ -330,7 +330,7 @@ func main(){
 	//	start_height = []byte("0")
 	//}
 	height :=start_height
-	//获取链上块高�?
+	//获取链上块高度
 	link_client := util.LinkClient{
 		IP:config.RpcServerConfig.SourceDataHost[ChainType],
 		Port:config.RpcServerConfig.SourceDataPort[ChainType],
