@@ -391,7 +391,7 @@ def zchain_query_getUtxoCount(chainId,address):
 @jsonrpc.method('Zchain.Query.GetSeedNode()')
 def zhcain_query_getseednode():
     logger.info('Zchain.Query.GetSeedNode')
-    ret = ["106.13.38.27:9034","117.78.44.37:9034","47.74.2.123:9034","47.74.23.176:9034","47.74.37.107:9034","52.194.253.245:9034","36.152.8.188:9034","172.81.250.51:9034"]
+    ret = ["119.45.188.146:9034","106.13.38.27:9034","117.78.44.37:9034","47.74.2.123:9034","47.74.23.176:9034","47.74.37.107:9034","52.194.253.245:9034","36.152.8.188:9034","172.81.250.51:9034"]
     return ret
 
 @jsonrpc.method('Zchain.Trans.createTrx(chainId=str, from_addr=str,dest_info=dict)')
