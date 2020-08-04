@@ -106,14 +106,14 @@ func collect_block(height_chan chan int,blockdata_chan chan simplejson.Json){
 }
 
 
-func flush_db_nosync(trx_cache []interface{},erc20_address_trx_cache []interface{}){
+func flush_db_nosync(trx_cache *[]interface{},erc20_address_trx_cache *[]interface{}){
 	//bak_time := time.Now()
 	//session:=get_session()
-	if len(trx_cache)>0{
+	if len(*trx_cache)>0{
 		util.InsertManyTrxData(session,trx_cache)
 	}
 
-	if len(erc20_address_trx_cache)>0{
+	if len(*erc20_address_trx_cache)>0{
 		util.InsertManyErc20TrxData(session,erc20_address_trx_cache)
 	}
 	//put_session(session)
@@ -159,7 +159,7 @@ func handle_block(blockdata_chan chan simplejson.Json,interval int64){
 					json_data,_ :=simplejson.NewJson([]byte("{\"result\":\"exit\"}"))
 					blockdata_chan <- *json_data
 				}
-				flush_db_nosync(trx_cache,erc20_address_trx_cache)
+				flush_db_nosync(&trx_cache,&erc20_address_trx_cache)
 
 
 
@@ -240,7 +240,9 @@ func handle_block(blockdata_chan chan simplejson.Json,interval int64){
 			}
 			trx_cache = append(trx_cache, trx_map_obj)
 		}
-		flush_db_nosync(trx_cache,erc20_address_trx_cache)
+		flush_db_nosync(&trx_cache,&erc20_address_trx_cache)
+		trx_cache = nil
+		erc20_address_trx_cache = nil
 
 		if tmp_height%interval ==0{
 
@@ -298,10 +300,11 @@ func main(){
 			return
 		}
 	}
+	go startRpcServer()
 
 
 
-	//检测推出信号
+	//检测推出信�?
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, os.Interrupt, os.Kill,  syscall.SIGINT, syscall.SIGTERM)
 	is_done:=false
@@ -327,7 +330,7 @@ func main(){
 	//	start_height = []byte("0")
 	//}
 	height :=start_height
-	//获取链上块高度
+	//获取链上块高�?
 	link_client := util.LinkClient{
 		IP:config.RpcServerConfig.SourceDataHost[ChainType],
 		Port:config.RpcServerConfig.SourceDataPort[ChainType],
@@ -398,7 +401,7 @@ func main(){
 
 		go handle_block(blockdata_chan,1)
 
-		go startRpcServer()
+		//go startRpcServer()
 		old_count := int(count)
 		for ;!is_done;{
 
