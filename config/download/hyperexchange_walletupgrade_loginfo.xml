@@ -1,3 +1,7 @@
+v1.3.4
+1 Fixed an issue during synchronization where synchronization was unexpectedly unavailable
+
+
 v1.3.3
 1 Fix bugs that require replay data every startup
 
