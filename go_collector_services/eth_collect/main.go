@@ -1,7 +1,6 @@
 package main
 
 import (
-	_ "github.com/golang/protobuf/proto"
 	_ "io/ioutil"
 	_ "os"
 	"fmt"
@@ -16,7 +15,6 @@ import (
 	"sync/atomic"
 	"strings"
 	_ "os"
-	_ "runtime/pprof"
 	"flag"
 	"os"
 	"os/signal"
@@ -89,6 +87,12 @@ func collect_block(height_chan chan int,blockdata_chan chan simplejson.Json){
 		atomic.AddInt64(&total_size,int64(size))
 		tx_array,_ := blockdata.Get("result").Get("transactions").Array()
 		atomic.AddInt64(&total_trx_size,int64(len(tx_array)))
+		if once_height%100000 == 0{
+			err:= util.RemoveExpiredRecord(session,once_height -100000)
+			if err !=nil{
+				fmt.Println(err)
+			}
+		}
 		if once_height % 1000 == 0{
 			res_tmp_height,_ :=blockdata.Get("result").Get("number").String()
 			tmp_height,_ := strconv.ParseInt(res_tmp_height[2:],16,32)
