@@ -352,11 +352,11 @@ func GetErc20HistoryRange(db * sql.DB,start_blocknumber,end_blocknumber int) []s
 
 func RemoveExpiredRecord(db *sql.DB,blockNumber int) error{
 	sqlStatement:=`delete from trx_data where "blocknumber" < $1 AND not exists (select null from relation_address where trx_data."from" = relation_address."Address" or trx_data."to" = relation_address."Address"  ) `
-	_,err := db.Exec(sqlStatement)
+	_,err := db.Exec(sqlStatement,blockNumber)
 	if err !=nil{
 		return err
 	}
 	sqlStatement1 := `delete from erc20_address_relation where "blocknumber" < $1 AND not exists (select null from relation_address where erc20_address_relation."from" = relation_address."Address" or erc20_address_relation."to" = relation_address."Address"  ) `
-	_,err = db.Exec(sqlStatement1)
+	_,err = db.Exec(sqlStatement1,blockNumber)
 	return err
 }
