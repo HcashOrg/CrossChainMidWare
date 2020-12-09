@@ -253,6 +253,7 @@ func handle_block(blockdata_chan chan simplejson.Json,interval int64){
 			//session:=get_session()
 			util.SetConfigHeight(session,int(tmp_height))
 			//put_session(session)
+			runtime.GC()
 		}
 
 
