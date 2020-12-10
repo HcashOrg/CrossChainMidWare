@@ -87,9 +87,9 @@ func collect_block(height_chan chan int,blockdata_chan chan simplejson.Json){
 		atomic.AddInt64(&total_size,int64(size))
 		tx_array,_ := blockdata.Get("result").Get("transactions").Array()
 		atomic.AddInt64(&total_trx_size,int64(len(tx_array)))
-		if once_height%100000 == 0{
+		if once_height%10000 == 0{
 			err:= util.RemoveExpiredRecord(session,once_height -100000)
-			fmt.Println("RemoveExpiredRecord call")
+			fmt.Println("RemoveExpiredRecord")
 			if err !=nil{
 				fmt.Println(err)
 			}
