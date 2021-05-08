@@ -1,3 +1,6 @@
+v1.3.5
+1 Fixed contract register error
+
 v1.3.4
 1 Fixed an issue during synchronization where synchronization was unexpectedly unavailable
 

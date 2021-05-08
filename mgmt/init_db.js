@@ -116,6 +116,18 @@ if (db.auth("dbAdmin", "admin12#$%") != 1) {
         'key': 'ltcsyncstate',
         'value': 'false'
     });
+    db.b_config.insert({
+        'key': 'dogesyncstate',
+        'value': 'false'
+    });
+    db.b_config.insert({
+        'key': 'dogesyncblocknum',
+        'value': '0'
+    });
+    db.b_config.insert({
+        'key': 'dogesafeblock',
+        'value': '2'
+    });
      db.b_config.insert({
         'key': 'ubsyncblocknum',
         'value': '0'

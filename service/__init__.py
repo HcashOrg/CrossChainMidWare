@@ -19,7 +19,7 @@ app = App
 db = Db
 client = Client
 jsonrpc = Jsonrpc
-sim_btc_utils_all = ["btc", "ltc", "ub","bch"]
+sim_btc_utils_all = ["btc", "ltc", "ub","bch", "doge"]
 sim_btc_plugin = {}
 for value in sim_btc_utils_all:
     upper = value.upper()
