@@ -30,7 +30,7 @@ import (
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"flag"
 	"strings"
-	btm_consensus "github.com/bytom/consensus"
+	btm_consensus "github.com/bytom/bytom/consensus"
 )
 
 var(

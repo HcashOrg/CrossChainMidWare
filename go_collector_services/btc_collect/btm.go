@@ -3,13 +3,13 @@ package main
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/kataras/iris/core/errors"
-	btm_types "github.com/bytom/protocol/bc/types"
-	btm_txbuilder "github.com/bytom/blockchain/txbuilder"
-	btm_common "github.com/bytom/common"
-	btm_vmutil "github.com/bytom/protocol/vm/vmutil"
-	btm_chainkd "github.com/bytom/crypto/ed25519/chainkd"
-	btm_bc "github.com/bytom/protocol/bc"
+	"errors"
+	btm_types "github.com/bytom/bytom/protocol/bc/types"
+	btm_txbuilder "github.com/bytom/bytom/blockchain/txbuilder"
+	btm_common "github.com/bytom/bytom/common"
+	btm_vmutil "github.com/bytom/bytom/protocol/vm/vmutil"
+	btm_chainkd "github.com/bytom/bytom/crypto/ed25519/chainkd"
+	btm_bc "github.com/bytom/bytom/protocol/bc"
 )
 
 type btmUTXO struct {
