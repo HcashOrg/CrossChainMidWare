@@ -196,5 +196,13 @@ if (db.auth("dbAdmin", "admin12#$%") != 1) {
         'key': 'bchsyncstate',
         'value': '0'
     });
+    db.b_config.insert({
+        'key': 'dogesyncblocknum',
+        'value': '0'
+    });
+    db.b_config.insert({
+        'key': 'dogesyncstate',
+        'value': '0'
+    });
 }
 
