@@ -58,6 +58,8 @@ class DevelopmentConfig(Config):
     DOGE_PORT=18899
     DOGE_FEE=0.001
     DOGE_PER_FEE=0.00005
+    DOGE_COLLECT_HOST = 'localhost'
+    DOGE_COLLECT_PORT = 5455
     HC_HOST = "hc_wallet"
     HC_PORT = 19021
     HC_COLLECT_HOST = "localhost"
