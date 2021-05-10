@@ -184,7 +184,7 @@ class CollectBlockThread(threading.Thread):
             if ret1['result'] == None:
                 raise Exception("blockchain_get_block error")
             block_hash = ret1['result']
-            if self.config.ASSET_SYMBOL == "HC":
+            if self.config.ASSET_SYMBOL == "HC" or self.config.ASSET_SYMBOL=="DOGE":
                 ret2 = self.wallet_api.http_request("getblock", [str(block_hash)])
             else:
                 ret2 = self.wallet_api.http_request("getblock", [str(block_hash), 2])
@@ -261,7 +261,7 @@ class BTCCoinTxCollector(CoinTxCollector):
             # Process each transaction
             for trx_data in block.transactions:
                 logging.debug("Transaction: %s" % trx_data)
-                if self.config.ASSET_SYMBOL == "HC":
+                if self.config.ASSET_SYMBOL == "HC" or self.config.ASSET_SYMBOL == "DOGE":
                     if block.block_num == 0:
                         continue
                     trx_data = self.get_transaction_data(trx_data)
@@ -329,7 +329,7 @@ class BTCCoinTxCollector(CoinTxCollector):
                 continue
             if not trx_in.has_key('vout'):
                 logging.error(trx_in)
-            if self.config.ASSET_SYMBOL == "HC":
+            if self.config.ASSET_SYMBOL == "HC" or self.config.ASSET_SYMBOL == "DOGE":
                 ret1 = self.wallet_api.http_request("getrawtransaction", [trx_in['txid'], 2])
             else:
                 ret1 = self.wallet_api.http_request("getrawtransaction", [trx_in['txid'], True])
@@ -340,7 +340,7 @@ class BTCCoinTxCollector(CoinTxCollector):
                 addr =  self._get_vout_address(ret1.get("result").get("vout")[int(trx_in['vout'])])
             else:
                 while True:
-                    if self.config.ASSET_SYMBOL == "HC":
+                    if self.config.ASSET_SYMBOL == "HC" or self.config.ASSET_SYMBOL == "DOGE":
                         ret1 = self.wallet_api.http_request("getrawtransaction", [trx_in['txid'], 2])
                     else:
                         ret1 = self.wallet_api.http_request("getrawtransaction", [trx_in['txid'], True])

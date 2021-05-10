@@ -27,6 +27,8 @@ if (db.auth("dbAdmin", "admin12#$%") != 1) {
     db.createCollection("b_chain_account");
     db.createCollection("b_btc_unspent");
     db.createCollection("b_btc_multisig_address");
+    db.createCollection("b_ltc_multisig_address");
+    db.createCollection("b_doge_multisig_address");
     db.createCollection("b_deposit_transaction");
     db.createCollection("b_withdraw_transaction");
     db.createCollection("b_exchange_contracts");
@@ -194,14 +196,6 @@ if (db.auth("dbAdmin", "admin12#$%") != 1) {
     });
     db.b_config.insert({
         'key': 'bchsyncstate',
-        'value': '0'
-    });
-    db.b_config.insert({
-        'key': 'dogesyncblocknum',
-        'value': '0'
-    });
-    db.b_config.insert({
-        'key': 'dogesyncstate',
         'value': '0'
     });
 }
