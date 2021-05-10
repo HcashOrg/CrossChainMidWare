@@ -56,8 +56,8 @@ class DevelopmentConfig(Config):
     LTC_PER_FEE = 0.00005
     DOGE_HOST="192.168.1.121"
     DOGE_PORT=18899
-    DOGE_FEE=2
-    DOGE_PER_FEE=0.5
+    DOGE_FEE=4
+    DOGE_PER_FEE=1
     DOGE_COLLECT_HOST = 'localhost'
     DOGE_COLLECT_PORT = 5455
     HC_HOST = "hc_wallet"
