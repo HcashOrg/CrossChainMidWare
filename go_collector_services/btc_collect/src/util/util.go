@@ -29,7 +29,7 @@ func BytesToInt32(buf []byte) int32 {
 func SplitAddrUtxoPrefix(prefix string)(string,int){
 	 start := strings.Index(prefix[20:],"O")
 	 end := strings.Index(prefix[20:],"I")
-	 txid := prefix[start+21:end]
+	 txid := prefix[start+21:end+20]
 	 vout_str := prefix[end+21:]
 	 vout,_ := strconv.ParseInt(vout_str,10,32)
 	 return txid,int(vout)
