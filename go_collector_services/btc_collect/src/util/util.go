@@ -27,10 +27,10 @@ func BytesToInt32(buf []byte) int32 {
 	return int32(binary.BigEndian.Uint32(buf))
 }
 func SplitAddrUtxoPrefix(prefix string)(string,int){
-	 start := strings.Index(prefix,"O")
-	 end := strings.Index(prefix,"I")
-	 txid := prefix[start+1:end]
-	 vout_str := prefix[end+1:]
+	 start := strings.Index(prefix[20:],"O")
+	 end := strings.Index(prefix[20:],"I")
+	 txid := prefix[start+21:end]
+	 vout_str := prefix[end+21:]
 	 vout,_ := strconv.ParseInt(vout_str,10,32)
 	 return txid,int(vout)
 }
