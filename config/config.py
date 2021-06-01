@@ -54,8 +54,8 @@ class DevelopmentConfig(Config):
     LTC_COLLECT_PORT = 5445
     LTC_FEE =0.001
     LTC_PER_FEE = 0.00005
-    DOGE_HOST="192.168.1.121"
-    DOGE_PORT=18899
+    DOGE_HOST="doge_wallet"
+    DOGE_PORT=60020
     DOGE_FEE=4
     DOGE_PER_FEE=1
     DOGE_COLLECT_HOST = 'localhost'
@@ -90,7 +90,7 @@ class DevelopmentConfig(Config):
     # BTM_COLLECT_HOST = 'localhost'
     BTM_COLLECT_HOST = "192.168.1.107"
     BTM_COLLECT_PORT = 5451
-    SUPPORT_MIDWARE_PLUGIN_SYMBOL=["HC","ETH","BTC","LTC","ERCPAX","ERCELF","USDT","BTM","BCH","ERCTITAN"]
+    SUPPORT_MIDWARE_PLUGIN_SYMBOL=["HC","ETH","BTC","LTC","ERCPAX","ERCELF","USDT","BTM","BCH","ERCTITAN","DOGE"]
     WHITE_LIST_SENATOR_ID = ["1.2.290","1.2.1294","1.2.1165","1.2.1124","1.2.1561","1.2.1237"]
     WHITE_LIST_FILE_PATH = "/hx/crosschain_midware/config/white_list_ids.json"
 
