@@ -8,8 +8,8 @@ import traceback
 
 def doge_request(method, args):
     url = "http://%s:%s" % (app.config['DOGE_HOST'], app.config['DOGE_PORT'])
-    user = 'test'
-    passwd = 'test'
+    user = 'a'
+    passwd = 'b'
     basestr = encodestring('%s:%s' % (user, passwd))[:-1]
     '''x = []
     for arg in args:
