@@ -51,8 +51,8 @@ class LTCCollectorConfig(CollectorConfig):
 
 class DOGECollectorConfig(CollectorConfig):
     ASSET_SYMBOL = "DOGE"
-    RPC_HOST = '192.168.1.123'
-    RPC_PORT = 18339
+    RPC_HOST = 'doge_wallet'
+    RPC_PORT = 60020
     SYNC_STATE_FIELD = "dogesyncstate"
     SYNC_BLOCK_NUM = "dogesyncblocknum"
     SAFE_BLOCK_FIELD = "dogesafeblock"
