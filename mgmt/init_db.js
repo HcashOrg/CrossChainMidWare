@@ -128,7 +128,7 @@ if (db.auth("dbAdmin", "admin12#$%") != 1) {
     });
     db.b_config.insert({
         'key': 'dogesafeblock',
-        'value': '2'
+        'value': '6'
     });
      db.b_config.insert({
         'key': 'ubsyncblocknum',
