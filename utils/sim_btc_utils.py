@@ -194,7 +194,7 @@ class sim_btc_utils:
                     sum = round(sum + float(txout[i].get("amount")), 8)
                 vin_need.append(txout[i])
                 use_idx.append(i)
-        sum = round(sum + bak_sum)
+        sum = round(sum + bak_sum,8)
         if len(txout)>8 and len(vin_need)<5:
             for i in range(5 - len(vin_need)):
                 cur_idx = len(txout)-i-1
