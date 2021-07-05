@@ -171,30 +171,25 @@ class sim_btc_utils:
         all_need_amount = round(amount+fee,8)
         bak_index = -1
         use_idx = []
-        if self.name.upper() != "DOGE":
-            if len(txout)>8:
-                for i in range(len(txout)):
-                    if float(txout[i].get("amount")) >= all_need_amount:
-                        bak_index=i
-                    elif float(txout[i].get("amount")) < all_need_amount and bak_index!=-1:
-                        sum = round(sum + float(txout[bak_index].get("amount")), 8)
-                        vin_need.append(txout[bak_index])
-                        use_idx.append(bak_index)
-                        break
-                    elif float(txout[i].get("amount")) < all_need_amount and bak_index==-1:
-                        break
-        bak_sum = 0
+        if len(txout)>8:
+            for i in range(len(txout)):
+                if float(txout[i].get("amount")) >= all_need_amount:
+                    bak_index=i
+                elif float(txout[i].get("amount")) < all_need_amount and bak_index!=-1:
+                    sum = round(sum + float(txout[bak_index].get("amount")), 8)
+                    vin_need.append(txout[bak_index])
+                    use_idx.append(bak_index)
+                    break
+                elif float(txout[i].get("amount")) < all_need_amount and bak_index==-1:
+                    break
+
         if bak_index == -1:
             for i in range(len(txout)):
                 if sum >= round(amount + fee, 8):
                     break
-                if self.name.upper() == "DOGE" and i == 0:
-                    bak_sum = round(float(txout[i].get("amount")), 8)
-                else:
                     sum = round(sum + float(txout[i].get("amount")), 8)
                 vin_need.append(txout[i])
                 use_idx.append(i)
-        sum = round(sum + bak_sum,8)
         if len(txout)>8 and len(vin_need)<5:
             for i in range(5 - len(vin_need)):
                 cur_idx = len(txout)-i-1
@@ -222,8 +217,7 @@ class sim_btc_utils:
             cal_fee = fee
         else:
             cal_fee = math.ceil(trx_size/1000.0) * self.config["per_fee"]
-        if self.name.upper() == "DOGE" and sum > 6000:
-            cal_fee = 0.001
+
 
         cal_fee = round(cal_fee,8)
         if cal_fee>fee:
