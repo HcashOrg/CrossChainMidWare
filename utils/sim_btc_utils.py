@@ -187,7 +187,7 @@ class sim_btc_utils:
             for i in range(len(txout)):
                 if sum >= round(amount + fee, 8):
                     break
-                    sum = round(sum + float(txout[i].get("amount")), 8)
+                sum = round(sum + float(txout[i].get("amount")), 8)
                 vin_need.append(txout[i])
                 use_idx.append(i)
         if len(txout)>8 and len(vin_need)<5:
