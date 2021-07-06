@@ -152,7 +152,7 @@ class sim_btc_utils:
             i = 0
         return int(i)
 
-    def sim_btc_create_transaction(self, from_addr, dest_info,is_fast):
+    def sim_btc_create_transaction(self, from_addr, dest_info,is_fast,full_send=False):
         txout = self.sim_btc_get_trx_out(from_addr)
         if len(txout) == 0 :
             return ""
@@ -217,7 +217,11 @@ class sim_btc_utils:
             cal_fee = fee
         else:
             cal_fee = math.ceil(trx_size/1000.0) * self.config["per_fee"]
-
+        if full_send:
+            for k,v in vouts:
+                vouts[k] = v+fee-cal_fee
+                cal_fee = fee
+                break
 
         cal_fee = round(cal_fee,8)
         if cal_fee>fee:
@@ -243,6 +247,10 @@ class sim_btc_utils:
                     index +=1
             return {"trx":trx,"hex":trx_hex,"scriptPubKey":script}
         return ""
+
+
+
+
 
     def sim_btc_combine_trx(self, signatures):
         resp = self.http_request("combinerawtransaction",[signatures])

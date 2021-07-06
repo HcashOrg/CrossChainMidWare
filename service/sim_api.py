@@ -425,6 +425,37 @@ def zchain_trans_createTrx(chainId, from_addr,dest_info):
     }
 
 
+@jsonrpc.method('Zchain.Trans.createFullSendTrx(chainId=str, from_addr=str,dest_info=dict)')
+def zchain_trans_createTrx(chainId, from_addr,dest_info):
+    logger.info('Zchain.Trans.createTrx')
+    if type(chainId) != unicode:
+        return error_utils.mismatched_parameter_type('chainId', 'STRING')
+    chainId = chainId.lower()
+    result = {}
+    if sim_btc_plugin.has_key(chainId):
+        is_fast_record = db.get_collection("b_config").find_one({"key": "is_fast"})
+        is_fast = False
+        if is_fast_record is not None:
+            is_fast = bool(is_fast_record["value"])
+        result = sim_btc_plugin[chainId].sim_btc_create_transaction(from_addr,dest_info,is_fast,True)
+    elif chainId == "hc":
+        result = hc_plugin.hc_create_transaction(from_addr, dest_info)
+    elif chainId == "usdt":
+        result = usdt_plugin.omni_create_transaction(from_addr,dest_info)
+    elif chainId == "btm":
+        result = btm_plugin.btm_create_transaction(from_addr, dest_info)
+    else:
+        return error_utils.invalid_chainid_type(chainId)
+
+    if result == {}:
+        return error_utils.error_response("Cannot create transaction.")
+
+    return {
+        'chainId': chainId,
+        'data': result
+    }
+
+
 @DeprecatedFunction
 @jsonrpc.method('Zchain.Trans.CombineTrx(chainId=str, transactions=list)')
 def zchain_trans_CombineTrx(chainId, transactions):
