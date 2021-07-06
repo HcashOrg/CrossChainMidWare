@@ -426,7 +426,7 @@ def zchain_trans_createTrx(chainId, from_addr,dest_info):
 
 
 @jsonrpc.method('Zchain.Trans.createFullSendTrx(chainId=str, from_addr=str,dest_info=dict)')
-def zchain_trans_createTrx(chainId, from_addr,dest_info):
+def zchain_trans_createFullSendTrx(chainId, from_addr,dest_info):
     logger.info('Zchain.Trans.createTrx')
     if type(chainId) != unicode:
         return error_utils.mismatched_parameter_type('chainId', 'STRING')

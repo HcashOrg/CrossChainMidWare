@@ -218,7 +218,7 @@ class sim_btc_utils:
         else:
             cal_fee = math.ceil(trx_size/1000.0) * self.config["per_fee"]
         if full_send:
-            for k,v in vouts:
+            for k,v in vouts.items():
                 vouts[k] = v+fee-cal_fee
                 cal_fee = fee
                 break
